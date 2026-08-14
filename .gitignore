@@ -1,0 +1,52 @@
+# Stunts Native Port - Git Ignore
+
+# Original proprietary assets (never commit copyrighted game data)
+original/
+Original/
+extracted/
+reference/restunts/stunts/
+*.zip
+*.ZIP
+
+# Reference repositories (managed as submodules or external checkouts)
+reference/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Build outputs
+build/
+bin/
+obj/
+dist/
+*.o
+*.obj
+*.a
+*.lib
+*.dylib
+*.so
+*.exe
+*.com
+*.app/
+*.dSYM/
+
+# Test outputs & state dumps
+*.bin
+*.bni
+*.BIN
+*.BNI
+dump/
+test_output/
+
+# IDE / Editor configuration
+.vscode/
+.idea/
+*.swp
+*~
+*.idb
+*.i64

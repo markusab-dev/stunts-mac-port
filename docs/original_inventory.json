@@ -1,0 +1,1542 @@
+{
+  "original_archive": {
+    "filename": "Stunts_DOS_EN.zip",
+    "path": "Original/Stunts_DOS_EN.zip",
+    "size_bytes": 1135140,
+    "sha256": "8c016289cf1e03525f0e6be93d73daf55f43bb5f546789f73fa3136660ef0886"
+  },
+  "file_count": 210,
+  "files": [
+    {
+      "name": "AD15.DRV",
+      "relative_path": "stunts/stunts/AD15.DRV",
+      "size_bytes": 3571,
+      "sha256": "e32b44c8ee6bf2046fc93359c225f3d99e559c94926594f6e3468e1c317afe26",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "ADENG1.VCE",
+      "relative_path": "stunts/stunts/ADENG1.VCE",
+      "size_bytes": 1152,
+      "sha256": "b60349d495ac9a604506a8904745ea125909410f8201cbe16af43b6b7da20e0c",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "ADSKIDMS.VCE",
+      "relative_path": "stunts/stunts/ADSKIDMS.VCE",
+      "size_bytes": 3008,
+      "sha256": "dd45b2fd36780088d602984273d7ef5a382f73ca24e88bf0eb04151e492dffa6",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "ALLJUMPS.HIG",
+      "relative_path": "stunts/stunts/ALLJUMPS.HIG",
+      "size_bytes": 364,
+      "sha256": "3bb0f9c45f76e60019acdd5df5053217d1022ce2e1dfb7bc7e00d4740653dd23",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "ALLJUMPS.TRK",
+      "relative_path": "stunts/stunts/ALLJUMPS.TRK",
+      "size_bytes": 1802,
+      "sha256": "7de0aaadd32176485c839e12d4e9a82c2c044f5315f5fa4442c758d88a3cca6b",
+      "category": "Track Definition"
+    },
+    {
+      "name": "ALPINE.PVS",
+      "relative_path": "stunts/stunts/ALPINE.PVS",
+      "size_bytes": 7423,
+      "sha256": "fe3ccb7836e52fdf1bcef031aaf29f7c184de5b6209ec38909ddca2fedd711ae",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "CARANSX.RES",
+      "relative_path": "stunts/stunts/CARANSX.RES",
+      "size_bytes": 932,
+      "sha256": "c1bac12d2bc0b84b9d132553aea400d494cdb5646d8ffcad88953b73f7710d5f",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARAUDI.RES",
+      "relative_path": "stunts/stunts/CARAUDI.RES",
+      "size_bytes": 962,
+      "sha256": "94168342b0e96b4d88f628060ff5531ec329287f76c777b2fb64645aa4893abf",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARCOUN.RES",
+      "relative_path": "stunts/stunts/CARCOUN.RES",
+      "size_bytes": 971,
+      "sha256": "49675cd82b090a2cd51e0e0812282745bd5d2c87901feca43ee933a1185c08ff",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARFGTO.RES",
+      "relative_path": "stunts/stunts/CARFGTO.RES",
+      "size_bytes": 942,
+      "sha256": "8487ec8258f939cd66a0fe8b45c738fcb3f31c35cc084a1e1bdebd0f47ee4a0f",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARJAGU.RES",
+      "relative_path": "stunts/stunts/CARJAGU.RES",
+      "size_bytes": 951,
+      "sha256": "01f6be51ea1da4bcb8f2c040ae1ac245a682e1dc8020d1f10347f7062fdf67cb",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARLANC.RES",
+      "relative_path": "stunts/stunts/CARLANC.RES",
+      "size_bytes": 969,
+      "sha256": "09e589c18fbad3af6b396463145ad210b02a943ae1a33937ba80278415a0bfcc",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARLM02.RES",
+      "relative_path": "stunts/stunts/CARLM02.RES",
+      "size_bytes": 954,
+      "sha256": "91bfb375cfa9e39c0932396406f4573ebdc84ca398b19e4f5a366194dcdfe0bb",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARP962.RES",
+      "relative_path": "stunts/stunts/CARP962.RES",
+      "size_bytes": 951,
+      "sha256": "bc38aa99ddb882fd71946ffbf3dca3d43172b2a5850b27409d7e358e6f252497",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARPC04.RES",
+      "relative_path": "stunts/stunts/CARPC04.RES",
+      "size_bytes": 952,
+      "sha256": "53443980bdc8bb881e3b2b6cf4a2b9097d5bb98c36fab91fbec2458ea0190dd4",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARPMIN.RES",
+      "relative_path": "stunts/stunts/CARPMIN.RES",
+      "size_bytes": 957,
+      "sha256": "7c8ae2eb12df43d948a82f5809c4816d9c94def52d18f884a054a725b0c54ca1",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CARVETT.RES",
+      "relative_path": "stunts/stunts/CARVETT.RES",
+      "size_bytes": 940,
+      "sha256": "b690b8e51ad539b3ece24e1475b6e2a80a0a59bcd525ee720fdb268025fb84c6",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CGA.COD",
+      "relative_path": "stunts/stunts/CGA.COD",
+      "size_bytes": 56988,
+      "sha256": "ef5798ba327fed81168e03bc33dda5e991a275bda6a228da2f0bf55474299016",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "CGA.DIF",
+      "relative_path": "stunts/stunts/CGA.DIF",
+      "size_bytes": 18030,
+      "sha256": "29432c1c51f20d462a0ddde7cb29dab80da6ef312340e789dcb34bf1f74075f1",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "CGA.HDR",
+      "relative_path": "stunts/stunts/CGA.HDR",
+      "size_bytes": 30,
+      "sha256": "5c4eba4265aed4da4d182d018c14c479fa1295602fc42b2ba6a12574566a4ab8",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "CITY.PVS",
+      "relative_path": "stunts/stunts/CITY.PVS",
+      "size_bytes": 7044,
+      "sha256": "2d2bc4c0da18073ba0c4fe3e2b09f46826a0cf4369a7cbd0b26228e775aad94d",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "CLEANER.HIG",
+      "relative_path": "stunts/stunts/CLEANER.HIG",
+      "size_bytes": 364,
+      "sha256": "f1d677d3808f356a59fb78aeb136ad1a8fea71aae29920c11a3a78fa355683b5",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CLEANER.TRK",
+      "relative_path": "stunts/stunts/CLEANER.TRK",
+      "size_bytes": 1802,
+      "sha256": "26a20682909d9f263d3d1b5f7d296717387eb850f25b71d22866e9383e4df03d",
+      "category": "Track Definition"
+    },
+    {
+      "name": "COUNTRY.PVS",
+      "relative_path": "stunts/stunts/COUNTRY.PVS",
+      "size_bytes": 3323,
+      "sha256": "8ecc889173d2e0f7f995b2d026d5fcccb8d0717a37decbdc06fea19d98ab03b0",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "CRED.RES",
+      "relative_path": "stunts/stunts/CRED.RES",
+      "size_bytes": 435,
+      "sha256": "1cafa5744d80151ad2a3c32b6eb1c8a4659f3e7002b8c6bd5150f95f2353fa49",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "CTRACK04.HIG",
+      "relative_path": "stunts/stunts/CTRACK04.HIG",
+      "size_bytes": 364,
+      "sha256": "18f25ff3586126f9fee075484b66b55318a22a19351d6ee4d14f36f6cca935f0",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CTRACK04.TRK",
+      "relative_path": "stunts/stunts/CTRACK04.TRK",
+      "size_bytes": 1802,
+      "sha256": "3ff48cdf5f316982004a566e4c9431f7b6f858213832b0191234d7698c047050",
+      "category": "Track Definition"
+    },
+    {
+      "name": "CTRACK05.HIG",
+      "relative_path": "stunts/stunts/CTRACK05.HIG",
+      "size_bytes": 364,
+      "sha256": "ece0ff77d440e3114ea963b1bf0a415c93c409cb2979ab0a26ec6f8b32455212",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CTRACK05.TRK",
+      "relative_path": "stunts/stunts/CTRACK05.TRK",
+      "size_bytes": 1802,
+      "sha256": "b66437795d772cc2b44dffd762c472d0ac8d704e7b8bf719e7519fafc6c5d5ea",
+      "category": "Track Definition"
+    },
+    {
+      "name": "CTRACK06.HIG",
+      "relative_path": "stunts/stunts/CTRACK06.HIG",
+      "size_bytes": 364,
+      "sha256": "14b7756e1b0b525ccd41dc89f3640b15e65249e670bb2d0425d5881b5ae89b20",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CTRACK06.TRK",
+      "relative_path": "stunts/stunts/CTRACK06.TRK",
+      "size_bytes": 1802,
+      "sha256": "b6a2cf6f7c6550b7c70488ffa8077acbc93c37e1b69d8c4598be5eb0ce6b2350",
+      "category": "Track Definition"
+    },
+    {
+      "name": "CTRACK07.HIG",
+      "relative_path": "stunts/stunts/CTRACK07.HIG",
+      "size_bytes": 364,
+      "sha256": "921ce9d3b8c9a57682e165a463d45fce62ff51a7b66dda0ebec170a237c7d1ce",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CTRACK07.TRK",
+      "relative_path": "stunts/stunts/CTRACK07.TRK",
+      "size_bytes": 1802,
+      "sha256": "169221d52c63de79dc3f0cdab1d649a062f6156beea2341573273d3ae08825ba",
+      "category": "Track Definition"
+    },
+    {
+      "name": "CTRACK08.HIG",
+      "relative_path": "stunts/stunts/CTRACK08.HIG",
+      "size_bytes": 364,
+      "sha256": "49b09a3ee0a5c965ac9fc96f169258e304a4c5029ea4d56b8ad40ad8e350f6f0",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CTRACK08.TRK",
+      "relative_path": "stunts/stunts/CTRACK08.TRK",
+      "size_bytes": 1802,
+      "sha256": "0073d7d3a872dc45d63cd9bca832cf5cea8e419f8bf7def6dbd5a8cd02146932",
+      "category": "Track Definition"
+    },
+    {
+      "name": "CTRACK09.HIG",
+      "relative_path": "stunts/stunts/CTRACK09.HIG",
+      "size_bytes": 364,
+      "sha256": "6e555be5c7f9e66b3e2223b1d4c597d271bd343b8be0b6c6bda8582f0af8750b",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CTRACK09.TRK",
+      "relative_path": "stunts/stunts/CTRACK09.TRK",
+      "size_bytes": 1802,
+      "sha256": "2fd1f6b62b2d87aab4f62e2f134e6bfdf617359d289077ae427929475e527d97",
+      "category": "Track Definition"
+    },
+    {
+      "name": "CTRACK10.HIG",
+      "relative_path": "stunts/stunts/CTRACK10.HIG",
+      "size_bytes": 364,
+      "sha256": "42676fc2c6a455d07066420fc7871d3a7eaa3884c9ce0cd90657866ad0c85087",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CTRACK10.TRK",
+      "relative_path": "stunts/stunts/CTRACK10.TRK",
+      "size_bytes": 1802,
+      "sha256": "8d736f47a612dbbc1a82d8cd70c7073c8ff9e092b645c29b0c9faf24f7dd129d",
+      "category": "Track Definition"
+    },
+    {
+      "name": "CTRACK11.HIG",
+      "relative_path": "stunts/stunts/CTRACK11.HIG",
+      "size_bytes": 364,
+      "sha256": "aed8bdad2a4ce38a8b8f9931dc7c568e291b54412225c6c513b9f28df3de8ff6",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "CTRACK11.TRK",
+      "relative_path": "stunts/stunts/CTRACK11.TRK",
+      "size_bytes": 1802,
+      "sha256": "4496c7ab518d2bf5cfe9133f7160d3ad4e92d02150add7e8fc04c5d7a849e928",
+      "category": "Track Definition"
+    },
+    {
+      "name": "DEFAULT.HIG",
+      "relative_path": "stunts/stunts/DEFAULT.HIG",
+      "size_bytes": 364,
+      "sha256": "988eb74ffa7635881036c62816c21f6f594652ccf49ac1071c83aaa8d5a20d1d",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "DEFAULT.RPL",
+      "relative_path": "stunts/stunts/DEFAULT.RPL",
+      "size_bytes": 12474,
+      "sha256": "e138069077c013c15ada29cdfd5ec7eec454bddf0129294246b5f510d8dc72cb",
+      "category": "Replay Recording"
+    },
+    {
+      "name": "DEFAULT.TRK",
+      "relative_path": "stunts/stunts/DEFAULT.TRK",
+      "size_bytes": 1802,
+      "sha256": "4111e30379c39020d10f30eef15b7e46aca87a7716e499cde2e89c7c545388fd",
+      "category": "Track Definition"
+    },
+    {
+      "name": "DESERT.PVS",
+      "relative_path": "stunts/stunts/DESERT.PVS",
+      "size_bytes": 5561,
+      "sha256": "10be89e39069512fb5f7574e1069fa53ed7e3e01012127297ebdd46779a0bb7c",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "EGA.CMN",
+      "relative_path": "stunts/stunts/EGA.CMN",
+      "size_bytes": 127337,
+      "sha256": "a151bea866218395d1cbf760a4ac6f8679a621251420ee6922dca6a1f2dbfeb9",
+      "category": "Other / Data"
+    },
+    {
+      "name": "EGA.COD",
+      "relative_path": "stunts/stunts/EGA.COD",
+      "size_bytes": 68823,
+      "sha256": "868e271437eb441b0d126aa2e6051ff4318e97c1dbfaf5af9de5664fcca12c4b",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "EGA.HDR",
+      "relative_path": "stunts/stunts/EGA.HDR",
+      "size_bytes": 30,
+      "sha256": "3c623db6bfa3ddb4f4372acbfd7dfc66124955734c83c0d0f9a1c4e3e1ba4280",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "EVRYJUMP.HIG",
+      "relative_path": "stunts/stunts/EVRYJUMP.HIG",
+      "size_bytes": 364,
+      "sha256": "1df167d36ebd06128ad8ec40467b57b135f5421fa3bed8296449f0c43842cb55",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "EVRYJUMP.TRK",
+      "relative_path": "stunts/stunts/EVRYJUMP.TRK",
+      "size_bytes": 1802,
+      "sha256": "3c42e8477ff2125caf32a1fcd67f3d6328d42b7a7e60d054823d50665592d197",
+      "category": "Track Definition"
+    },
+    {
+      "name": "EXERCISE.HIG",
+      "relative_path": "stunts/stunts/EXERCISE.HIG",
+      "size_bytes": 364,
+      "sha256": "4c7cb84a86f6ab1c9ec6e8693299471f171d26ddda66024bf95612f54d0942ca",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "EXERCISE.TRK",
+      "relative_path": "stunts/stunts/EXERCISE.TRK",
+      "size_bytes": 1802,
+      "sha256": "c072f7fdf39c42c4251d324ad3efde806c883298c7e79a524c513fe76a664ca0",
+      "category": "Track Definition"
+    },
+    {
+      "name": "FAST.HIG",
+      "relative_path": "stunts/stunts/FAST.HIG",
+      "size_bytes": 364,
+      "sha256": "f31e612f208f8c0c48bb50c9b247d5b009d2f1ed748c162da72b9677ce49d5b9",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "FAST.TRK",
+      "relative_path": "stunts/stunts/FAST.TRK",
+      "size_bytes": 1802,
+      "sha256": "5e03089530051995bb3b3f84b5458efb36a8d9e957b985a5675f13df0ebe066d",
+      "category": "Track Definition"
+    },
+    {
+      "name": "FAST2.HIG",
+      "relative_path": "stunts/stunts/FAST2.HIG",
+      "size_bytes": 364,
+      "sha256": "e7b0822823c52e912cf50444d063cb6aeb67577846690c08e5f59b50a5a5e56d",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "FAST2.TRK",
+      "relative_path": "stunts/stunts/FAST2.TRK",
+      "size_bytes": 1802,
+      "sha256": "ed8507fef06534a9b9dc61950a16fdca6bb87ce73ead407da922854849e98691",
+      "category": "Track Definition"
+    },
+    {
+      "name": "FONTDEF.FNT",
+      "relative_path": "stunts/stunts/FONTDEF.FNT",
+      "size_bytes": 1837,
+      "sha256": "e23751b411c0914cbb52ac1fe3bc32811502ef8267b3f85c9d276299a542c811",
+      "category": "Bitmap Font"
+    },
+    {
+      "name": "FONTLED.FNT",
+      "relative_path": "stunts/stunts/FONTLED.FNT",
+      "size_bytes": 670,
+      "sha256": "9e6b9fec9644c42b3859a39847032ff1dc0e7503e7d678d0a4b78b887846dcd6",
+      "category": "Bitmap Font"
+    },
+    {
+      "name": "FONTN.FNT",
+      "relative_path": "stunts/stunts/FONTN.FNT",
+      "size_bytes": 1443,
+      "sha256": "1474388e2c8f7b42a328afab8f77e663c4040e816de8870c5e2c01dad2592f60",
+      "category": "Bitmap Font"
+    },
+    {
+      "name": "FUNHILLS.HIG",
+      "relative_path": "stunts/stunts/FUNHILLS.HIG",
+      "size_bytes": 364,
+      "sha256": "61678c7b0614e3891f95208aac06acfab13127bc1d3355fa97a75690bc716d3a",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "FUNHILLS.TRK",
+      "relative_path": "stunts/stunts/FUNHILLS.TRK",
+      "size_bytes": 1802,
+      "sha256": "73cc53d49e688f631e1ca1de8f9ead3307d3ce1bb06834fa88ecdd7f3446ad69",
+      "category": "Track Definition"
+    },
+    {
+      "name": "FUNISLES.HIG",
+      "relative_path": "stunts/stunts/FUNISLES.HIG",
+      "size_bytes": 364,
+      "sha256": "e389e9c91582b5fbfcbe50c7e0d5ac62ff1a2426fefa2f89311cd972f03f1961",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "FUNISLES.TRK",
+      "relative_path": "stunts/stunts/FUNISLES.TRK",
+      "size_bytes": 1802,
+      "sha256": "ac0437fce02ab866855708bbfcb766dc8410d923b6c378c865bb27aba1b059e7",
+      "category": "Track Definition"
+    },
+    {
+      "name": "GAME.PRE",
+      "relative_path": "stunts/stunts/GAME.PRE",
+      "size_bytes": 15434,
+      "sha256": "1607dd74537cb16f723b9e15b840f4f3d6b8dabe268e11030d0007652d350fb7",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "GAME1.P3S",
+      "relative_path": "stunts/stunts/GAME1.P3S",
+      "size_bytes": 17556,
+      "sha256": "5cec619a4c5fd032c26ef32696e54c710c16daeda057c84cc463d4ec2a53df73",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "GAME2.P3S",
+      "relative_path": "stunts/stunts/GAME2.P3S",
+      "size_bytes": 21852,
+      "sha256": "3089a20554403ff6b34dd291ca3ed08064e333e12a9f49c506ef2498667b848f",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "GEENG.SFX",
+      "relative_path": "stunts/stunts/GEENG.SFX",
+      "size_bytes": 2074,
+      "sha256": "3a8b263a1643f4dcd5879c0f3deb149f796f1ce44c821280814ea39f4858da2e",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "HEAVY.HIG",
+      "relative_path": "stunts/stunts/HEAVY.HIG",
+      "size_bytes": 364,
+      "sha256": "a6d600f01a48c0079162fb0c0f95661450df02654980414c9d9fdaf3584b1144",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HEAVY.TRK",
+      "relative_path": "stunts/stunts/HEAVY.TRK",
+      "size_bytes": 1802,
+      "sha256": "44fbdea66aab452830fb81907ed39ad7287b1ff47d7fd8ffa2804b40717590d9",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HEIZ!.HIG",
+      "relative_path": "stunts/stunts/HEIZ!.HIG",
+      "size_bytes": 364,
+      "sha256": "653ac8f0ebdd9de5d9562841c6dd246bc8ff5af2534772bac44e7ccc70d50d02",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HEIZ!.TRK",
+      "relative_path": "stunts/stunts/HEIZ!.TRK",
+      "size_bytes": 1802,
+      "sha256": "9708da6eb3cc4876fde13eadb7f1c5ef983a7374af6945f07d68687c7b3944e4",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HEIZ2!.HIG",
+      "relative_path": "stunts/stunts/HEIZ2!.HIG",
+      "size_bytes": 364,
+      "sha256": "220b183757bcc8935d43f6badc281feb4492e94566cebc16923d35367245883d",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HEIZ2!.TRK",
+      "relative_path": "stunts/stunts/HEIZ2!.TRK",
+      "size_bytes": 1802,
+      "sha256": "b8d9dd308b3d641b02c9323748c1e3725ceb1340a784ddfa9fd1ad28eaa3c5fc",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HEIZ3.HIG",
+      "relative_path": "stunts/stunts/HEIZ3.HIG",
+      "size_bytes": 364,
+      "sha256": "b3e0bdb6848a1def82c5a8f33e79e8f067c43e349604040e6f86c1b2018eb9df",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HEIZ3.TRK",
+      "relative_path": "stunts/stunts/HEIZ3.TRK",
+      "size_bytes": 1802,
+      "sha256": "03ff6ecc69d5b6c089f5007e9a12a06d28a2e8d6530e51e7b10e655361e7bed0",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HELL.HIG",
+      "relative_path": "stunts/stunts/HELL.HIG",
+      "size_bytes": 364,
+      "sha256": "ff79515e648dc574d45067a83b39de8ad27ef5ff2100fed5690cd96b2eca6c4f",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HELL.TRK",
+      "relative_path": "stunts/stunts/HELL.TRK",
+      "size_bytes": 1802,
+      "sha256": "1d38f28348b23ed6d90562ab0428883cfc4557823645e885285329d000c1e5d1",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HELL2.HIG",
+      "relative_path": "stunts/stunts/HELL2.HIG",
+      "size_bytes": 364,
+      "sha256": "1b6c098e4307603509a52fa8aa62ebb57674c9a22d05651f6dd0589e8e467d24",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HELL2.TRK",
+      "relative_path": "stunts/stunts/HELL2.TRK",
+      "size_bytes": 1802,
+      "sha256": "ebc662820572c87a0c1651f2b03e3f377405206d749a5c98eb8b6ac2a286f9d9",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HELL3.HIG",
+      "relative_path": "stunts/stunts/HELL3.HIG",
+      "size_bytes": 364,
+      "sha256": "26d4bc19bca130d1c9bcdf5adca11f1b8e71f29532c3c00b95d8d88f021f05c6",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HELL3.TRK",
+      "relative_path": "stunts/stunts/HELL3.TRK",
+      "size_bytes": 1802,
+      "sha256": "d54a34ad78c8031278ab7af36f63ada0c6dd8840a95a94d85ef7e96ff924bdd9",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HELL4.HIG",
+      "relative_path": "stunts/stunts/HELL4.HIG",
+      "size_bytes": 364,
+      "sha256": "512524c97c0f75ccffeee91394483085e1ef16ae0c545697f99a0c8d29022bb8",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HELL4.TRK",
+      "relative_path": "stunts/stunts/HELL4.TRK",
+      "size_bytes": 1802,
+      "sha256": "7a15866c9a62e863cf8ffcc613b211d43bae9e135db07878e885a7687c194672",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HELL5.HIG",
+      "relative_path": "stunts/stunts/HELL5.HIG",
+      "size_bytes": 364,
+      "sha256": "d1095ffdac5b9a58341a85098bc75f02fd02a07d9b72cfdd9ef23b8cd8f6f93d",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HELL5.TRK",
+      "relative_path": "stunts/stunts/HELL5.TRK",
+      "size_bytes": 1802,
+      "sha256": "27051d84eb2f0ee945880dd930e3755c923b10f221d95e38a1546fdd544594d3",
+      "category": "Track Definition"
+    },
+    {
+      "name": "HIRNRISS.HIG",
+      "relative_path": "stunts/stunts/HIRNRISS.HIG",
+      "size_bytes": 364,
+      "sha256": "a6f332472283c2661722564ab982df7689de3658268d6ca77dbb8f18d01d5f07",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "HIRNRISS.TRK",
+      "relative_path": "stunts/stunts/HIRNRISS.TRK",
+      "size_bytes": 1802,
+      "sha256": "66b3781ef4507db1617605e9b7a2dc65a6743257f1e19181c97fb0f6b077df2c",
+      "category": "Track Definition"
+    },
+    {
+      "name": "JTK.HIG",
+      "relative_path": "stunts/stunts/JTK.HIG",
+      "size_bytes": 364,
+      "sha256": "c8c9cd317488e38a4a747c943085eb6eb3ea430e79a7f610a039ef21f67fa444",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "JTK.TRK",
+      "relative_path": "stunts/stunts/JTK.TRK",
+      "size_bytes": 1802,
+      "sha256": "f6bcc29d638557bf809179c6e8243ed3d0c7cf87223cecd953c18a74293f22d4",
+      "category": "Track Definition"
+    },
+    {
+      "name": "JUMP&JOY.HIG",
+      "relative_path": "stunts/stunts/JUMP&JOY.HIG",
+      "size_bytes": 364,
+      "sha256": "61678c7b0614e3891f95208aac06acfab13127bc1d3355fa97a75690bc716d3a",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "JUMP&JOY.TRK",
+      "relative_path": "stunts/stunts/JUMP&JOY.TRK",
+      "size_bytes": 1802,
+      "sha256": "b1600d09d3a79614638455a55930e645eabc4479c61a0048bec541c3d8f0f61b",
+      "category": "Track Definition"
+    },
+    {
+      "name": "JUMP.HIG",
+      "relative_path": "stunts/stunts/JUMP.HIG",
+      "size_bytes": 364,
+      "sha256": "199f0c9f3392eba880fbdeaa089c79d4cc585a37af7f33e086e281188692ae3f",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "JUMP.TRK",
+      "relative_path": "stunts/stunts/JUMP.TRK",
+      "size_bytes": 1802,
+      "sha256": "d3ab1c6ac7bbfe79b03c7e7ef67bd1c594278c98d9df68c1c112ecc00631c3b8",
+      "category": "Track Definition"
+    },
+    {
+      "name": "KING.HIG",
+      "relative_path": "stunts/stunts/KING.HIG",
+      "size_bytes": 364,
+      "sha256": "1fc1930a68a3e27072228ce6b272aa85c7a53c12cdf7cad806b4830b47692f1c",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "KING.TRK",
+      "relative_path": "stunts/stunts/KING.TRK",
+      "size_bytes": 1802,
+      "sha256": "2fd1f6b62b2d87aab4f62e2f134e6bfdf617359d289077ae427929475e527d97",
+      "category": "Track Definition"
+    },
+    {
+      "name": "LOAD.EXE",
+      "relative_path": "stunts/stunts/LOAD.EXE",
+      "size_bytes": 20829,
+      "sha256": "09fe56fc50bad3a28267e27acf46ba67a20eae0199764a5958e9892bf92be2c2",
+      "category": "Executable / Launcher",
+      "dos_exe_info": {
+        "is_dos_exe": true,
+        "header_paragraphs": 32,
+        "header_bytes": 512,
+        "reloc_entries": 0,
+        "reloc_table_offset": 30,
+        "initial_cs_ip": "04C5:0012",
+        "initial_ss_sp": "0529:0080",
+        "min_extra_paragraphs": 361,
+        "max_extra_paragraphs": 9000,
+        "calculated_exe_size": 20829,
+        "actual_file_size": 20829,
+        "has_overlay_data": false,
+        "overlay_size": 0
+      }
+    },
+    {
+      "name": "MAIN.RES",
+      "relative_path": "stunts/stunts/MAIN.RES",
+      "size_bytes": 1504,
+      "sha256": "def423aa19d86330ce187eaf6c26203b40ab0341223b1f5a863bbc7b66c07ec1",
+      "category": "Resource Archive / Index"
+    },
+    {
+      "name": "MCGA.COD",
+      "relative_path": "stunts/stunts/MCGA.COD",
+      "size_bytes": 48899,
+      "sha256": "a99e6760e6f0a4c12526abb6117375c5ba388c0fae1f3790921ba9e3b9dbaf27",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "MCGA.DIF",
+      "relative_path": "stunts/stunts/MCGA.DIF",
+      "size_bytes": 17958,
+      "sha256": "6dd8cd000a4bfeac213833e22dd0deb20891347fa0e61b0f874037fb4e34f5c0",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "MCGA.HDR",
+      "relative_path": "stunts/stunts/MCGA.HDR",
+      "size_bytes": 30,
+      "sha256": "d4e6f3337ddb5a6fcd8207a065ed399e745eba5a943a85cffc21f1b1670f5b60",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "MEGAJUMP.HIG",
+      "relative_path": "stunts/stunts/MEGAJUMP.HIG",
+      "size_bytes": 364,
+      "sha256": "4788b2136b528798ac72a6b9592aba5c68ad8c6977f03789ba07a261765170ba",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "MEGAJUMP.TRK",
+      "relative_path": "stunts/stunts/MEGAJUMP.TRK",
+      "size_bytes": 1802,
+      "sha256": "514491b1b8b562cc19b1256fabac6c40f9798ff08b89ae32ef22d0bad7c30ef7",
+      "category": "Track Definition"
+    },
+    {
+      "name": "MISC.PRE",
+      "relative_path": "stunts/stunts/MISC.PRE",
+      "size_bytes": 1814,
+      "sha256": "9c3e8f2460b510ee17e05f83dce4aa401cba9ab0a6a0a917b99c906f160e88a3",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "MONSTER.HIG",
+      "relative_path": "stunts/stunts/MONSTER.HIG",
+      "size_bytes": 364,
+      "sha256": "1c1c0bb92a5c6adb01c8f3c68dfec2c550cf4c6b2d11a2680302ca0c79fdec19",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "MONSTER.TRK",
+      "relative_path": "stunts/stunts/MONSTER.TRK",
+      "size_bytes": 1802,
+      "sha256": "c01b6488dbd03e8aafac329dcddfb97431974f545f99acf09068fb3ef21f7b03",
+      "category": "Track Definition"
+    },
+    {
+      "name": "MT15.DRV",
+      "relative_path": "stunts/stunts/MT15.DRV",
+      "size_bytes": 1750,
+      "sha256": "f29d81f12bbb993764c2409da5afdc1ef161cd5605b6fca8527999954d216242",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "MT32.PLB",
+      "relative_path": "stunts/stunts/MT32.PLB",
+      "size_bytes": 1271,
+      "sha256": "214d755560a2cfd9484af01af59f2b5d66def5a4aca2746c306bb982ca2b8968",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "MTENG1.VCE",
+      "relative_path": "stunts/stunts/MTENG1.VCE",
+      "size_bytes": 976,
+      "sha256": "9154e632f4529be60c674af9a0cd421a1e2f162011d5efa70fa2776b6b317567",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "MTSKIDMS.VCE",
+      "relative_path": "stunts/stunts/MTSKIDMS.VCE",
+      "size_bytes": 1184,
+      "sha256": "16ea0a59dd6295a0c221d36d522babda048ca8f8cfda562b9e68eeceb12a295c",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "OPP1.PRE",
+      "relative_path": "stunts/stunts/OPP1.PRE",
+      "size_bytes": 1254,
+      "sha256": "0823491c68f24082cc044d6e37d027713c3b2ec3da455804d73786b724d824f9",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP1LOSE.PVS",
+      "relative_path": "stunts/stunts/OPP1LOSE.PVS",
+      "size_bytes": 10733,
+      "sha256": "fb51ce1a70d43e7b37338196c846efb9d912df19340360613290c28e7287e872",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP1WIN.PVS",
+      "relative_path": "stunts/stunts/OPP1WIN.PVS",
+      "size_bytes": 10143,
+      "sha256": "bc0cdd93f72919e5e0eaddd4ce85c478cabb003cecdb0af9e6d96a4b5891cdbb",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP2.PRE",
+      "relative_path": "stunts/stunts/OPP2.PRE",
+      "size_bytes": 1321,
+      "sha256": "53fe673dc8e341b0065b9581d1721b0508b8af0b63eece1148351ca6d2c3fa91",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP2LOSE.PVS",
+      "relative_path": "stunts/stunts/OPP2LOSE.PVS",
+      "size_bytes": 18883,
+      "sha256": "52bcb2d70ef7d584498055ef622f6672c20e6e3cd6186bf2156a0847e9f51ffb",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP2WIN.PVS",
+      "relative_path": "stunts/stunts/OPP2WIN.PVS",
+      "size_bytes": 20830,
+      "sha256": "aa81afc7b0bb1a8090f4f5a740719266a714a894ae11af35569c55de82fb5675",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP3.PRE",
+      "relative_path": "stunts/stunts/OPP3.PRE",
+      "size_bytes": 993,
+      "sha256": "c89ebd046f5bd990d692860692037db4cbf8a181184df083b0b09f5ca1f87a19",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP3LOSE.PVS",
+      "relative_path": "stunts/stunts/OPP3LOSE.PVS",
+      "size_bytes": 11578,
+      "sha256": "bed7a07c1af6da7b0b8adb44550fb134bcef4c9be163d9f19a606033f7e5698f",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP3WIN.PVS",
+      "relative_path": "stunts/stunts/OPP3WIN.PVS",
+      "size_bytes": 21125,
+      "sha256": "fae077d108455d63ad2df102a9dcb017679f2823bdb7b2d7a63c4298c19d0e35",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP4.PRE",
+      "relative_path": "stunts/stunts/OPP4.PRE",
+      "size_bytes": 1372,
+      "sha256": "f28d5132d156d85de2192df942d39c6e924383d91bc9a002cc59531e474fa1f5",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP4LOSE.PVS",
+      "relative_path": "stunts/stunts/OPP4LOSE.PVS",
+      "size_bytes": 26093,
+      "sha256": "763754a4f49ad49b231ab310a84d2917d5b76ae93051aebef1e9c4dfcea8e4c3",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP4WIN.PVS",
+      "relative_path": "stunts/stunts/OPP4WIN.PVS",
+      "size_bytes": 25855,
+      "sha256": "59680ff08501cfbfa36f618948db87f793147ac948b5b27c632f3d70bac12a0e",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP5.PRE",
+      "relative_path": "stunts/stunts/OPP5.PRE",
+      "size_bytes": 1256,
+      "sha256": "94b76a794e08ababd1c1061082d02a73c43355ed77687f7a9f3d974cadc0b309",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP5LOSE.PVS",
+      "relative_path": "stunts/stunts/OPP5LOSE.PVS",
+      "size_bytes": 22016,
+      "sha256": "0c246410b9f65ae29f344f0354c59c337b37650d4f33bdf62128359bae57baa1",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP5WIN.PVS",
+      "relative_path": "stunts/stunts/OPP5WIN.PVS",
+      "size_bytes": 33740,
+      "sha256": "15b2babda5efe8cd576800d8944d099e993f2a680dc79416c09c42b2a72c9078",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP6.PRE",
+      "relative_path": "stunts/stunts/OPP6.PRE",
+      "size_bytes": 1297,
+      "sha256": "b167f69384434bcf45cd912f29c50f75435faddd81a6148edfba056bc136a0a2",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP6LOSE.PVS",
+      "relative_path": "stunts/stunts/OPP6LOSE.PVS",
+      "size_bytes": 28687,
+      "sha256": "65827c18afb439af2178d00240f453410bc750018742f311de6cd9b94597d020",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "OPP6WIN.PVS",
+      "relative_path": "stunts/stunts/OPP6WIN.PVS",
+      "size_bytes": 24653,
+      "sha256": "1234dfaafeefae1410b0d7f4c35b1fe472535a05cb0be7222ad9329fc989e2a2",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "PC15.DRV",
+      "relative_path": "stunts/stunts/PC15.DRV",
+      "size_bytes": 2227,
+      "sha256": "4edc71e9bd56885ff8a48d7d4595c6e3a9450274ddf17580adb49d2b86353d67",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "PCENG1.VCE",
+      "relative_path": "stunts/stunts/PCENG1.VCE",
+      "size_bytes": 1049,
+      "sha256": "27355dbdc664b08803b95b9bbd06c6c7417f776ee6f57ab9f57191f6b73b5362",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "PCSKIDMS.VCE",
+      "relative_path": "stunts/stunts/PCSKIDMS.VCE",
+      "size_bytes": 1232,
+      "sha256": "5030e94cddcbf76d0b0750fa7fb656d3f7bf15819a8d7f161991ff57d1362b06",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "SCHPASS.HIG",
+      "relative_path": "stunts/stunts/SCHPASS.HIG",
+      "size_bytes": 364,
+      "sha256": "db5ecf0b0cbda66fec984b7af81b0e48b1c3ee8d4a7985858ec145ec549f6253",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "SCHPASS.TRK",
+      "relative_path": "stunts/stunts/SCHPASS.TRK",
+      "size_bytes": 1802,
+      "sha256": "14c669776a6097457b9ebf183fb54440e4ae562ad49576299eb9bfb11dfb5ff9",
+      "category": "Track Definition"
+    },
+    {
+      "name": "SDCRED.PES",
+      "relative_path": "stunts/stunts/SDCRED.PES",
+      "size_bytes": 3608,
+      "sha256": "62fd4dfa4f4e6f30905a08af52eba1eaff3bc079ca5a4de17d7367457321b506",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SDCSEL.PVS",
+      "relative_path": "stunts/stunts/SDCSEL.PVS",
+      "size_bytes": 12362,
+      "sha256": "ffefac20280034739c875b57c383d06e49c7b2d03340323d90594912d5f3b8ac",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SDGAME.PVS",
+      "relative_path": "stunts/stunts/SDGAME.PVS",
+      "size_bytes": 12286,
+      "sha256": "77ccbb605166439ab30d59028b466f626e38c0c26322a2c31c15d8a5c2b95da0",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SDGAME2.PVS",
+      "relative_path": "stunts/stunts/SDGAME2.PVS",
+      "size_bytes": 1252,
+      "sha256": "363728c09a46ef4d8d0e4375af5fbff4274a469487efe86177793cee4c419a32",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SDMAIN.PVS",
+      "relative_path": "stunts/stunts/SDMAIN.PVS",
+      "size_bytes": 1176,
+      "sha256": "a33b54cff282fed2d68134fcf334f4e44917f906a6556013e0f6c6dd546cdd3b",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SDMSEL.PVS",
+      "relative_path": "stunts/stunts/SDMSEL.PVS",
+      "size_bytes": 15577,
+      "sha256": "fa238c39546d755a0954aac27668cae2024b17c8da513cf509912b8080251e8d",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SDOSEL.PVS",
+      "relative_path": "stunts/stunts/SDOSEL.PVS",
+      "size_bytes": 39363,
+      "sha256": "43dc5b1ef38b2d345ce0674c5e1d8b13f8961024fdb5ef510d2ed945c2c2ba7d",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SDTEDIT.PES",
+      "relative_path": "stunts/stunts/SDTEDIT.PES",
+      "size_bytes": 16076,
+      "sha256": "1fd465adc42719645022b1afd68f2f64e85378dd38ff41f408c3d55173b56330",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SDTITL.PVS",
+      "relative_path": "stunts/stunts/SDTITL.PVS",
+      "size_bytes": 9984,
+      "sha256": "26c9f744897269df834961c6e5bad60687ff117a85ec8fac70839e9bd4c9c243",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "SETUP.DAT",
+      "relative_path": "stunts/stunts/SETUP.DAT",
+      "size_bytes": 83,
+      "sha256": "56843ead188df609d39c2b89b9fa5275176e2fb62fdb7603a0e9e5e9c203fe26",
+      "category": "Configuration / Setup Data"
+    },
+    {
+      "name": "SETUP.EXE",
+      "relative_path": "stunts/stunts/SETUP.EXE",
+      "size_bytes": 15065,
+      "sha256": "c0333bfb69c11023aba5bbcd2913d204afa65374044c4a911b27f50014c5d5b5",
+      "category": "Executable / Launcher",
+      "dos_exe_info": {
+        "is_dos_exe": true,
+        "header_paragraphs": 32,
+        "header_bytes": 512,
+        "reloc_entries": 0,
+        "reloc_table_offset": 30,
+        "initial_cs_ip": "0379:0010",
+        "initial_ss_sp": "03AE:0080",
+        "min_extra_paragraphs": 2504,
+        "max_extra_paragraphs": 65535,
+        "calculated_exe_size": 15065,
+        "actual_file_size": 15065,
+        "has_overlay_data": false,
+        "overlay_size": 0
+      }
+    },
+    {
+      "name": "SKIDOVER.KMS",
+      "relative_path": "stunts/stunts/SKIDOVER.KMS",
+      "size_bytes": 4303,
+      "sha256": "206903922664eaf9cb7d53b11dd5efd782c3c3e0d065ea99dd872e5410fe0f98",
+      "category": "Audio / Sequence / Music Data"
+    },
+    {
+      "name": "SKIDSLCT.KMS",
+      "relative_path": "stunts/stunts/SKIDSLCT.KMS",
+      "size_bytes": 8612,
+      "sha256": "eef1c083d32d0c2e068d937164fca2d3aac078b31621d30e43ad74d742cfe630",
+      "category": "Audio / Sequence / Music Data"
+    },
+    {
+      "name": "SKIDTITL.KMS",
+      "relative_path": "stunts/stunts/SKIDTITL.KMS",
+      "size_bytes": 2590,
+      "sha256": "72042e590bb41ba9f097c76b19aefe80138328d2fd274539abcf0c738da4ca5d",
+      "category": "Audio / Sequence / Music Data"
+    },
+    {
+      "name": "SKIDVICT.KMS",
+      "relative_path": "stunts/stunts/SKIDVICT.KMS",
+      "size_bytes": 4221,
+      "sha256": "20cd9d6402d4936d0cddf74f95460d32330e49f5229f5af2bf49a9ecc902b80a",
+      "category": "Audio / Sequence / Music Data"
+    },
+    {
+      "name": "ST.COM",
+      "relative_path": "stunts/stunts/ST.COM",
+      "size_bytes": 208,
+      "sha256": "6217aa82089c22a9589154a5de8281c8068b0d083e0dd24ed008f09143b6c536",
+      "category": "Executable / Launcher"
+    },
+    {
+      "name": "STANSX.P3S",
+      "relative_path": "stunts/stunts/STANSX.P3S",
+      "size_bytes": 5140,
+      "sha256": "cceeb64db104076739fa440614d6e49b579d65a3b961ae7a64bc31eabfc75c5b",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STAUDI.P3S",
+      "relative_path": "stunts/stunts/STAUDI.P3S",
+      "size_bytes": 7026,
+      "sha256": "f1befd53b5a99a36c7de6f7478d02d550e496235c35bf32f1b4f6dfbc649cdc1",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STCOUN.P3S",
+      "relative_path": "stunts/stunts/STCOUN.P3S",
+      "size_bytes": 5338,
+      "sha256": "32a5ed896367173125d0adbc01745819d9bdfb331b79aa5aac9eef94b2e9d8f6",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STDAANSX.PVS",
+      "relative_path": "stunts/stunts/STDAANSX.PVS",
+      "size_bytes": 14776,
+      "sha256": "9a0e8e91ad6ffed3b6f7e225dd6b4e7b31eaca6bf0aa35c4c64009d5c9cb35a8",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDAAUDI.PVS",
+      "relative_path": "stunts/stunts/STDAAUDI.PVS",
+      "size_bytes": 15167,
+      "sha256": "d75610884ef4f0aaff9e53362ed9ba4d913c8f699a9f8299e71954f3b3d41377",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDACOUN.PVS",
+      "relative_path": "stunts/stunts/STDACOUN.PVS",
+      "size_bytes": 12896,
+      "sha256": "1bebc0b9831acad8c6b5f2f8372993d4eacd759e9d4358f6235f97d27851e48b",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDAFGTO.PVS",
+      "relative_path": "stunts/stunts/STDAFGTO.PVS",
+      "size_bytes": 15364,
+      "sha256": "cf208925803939e99f75456cbbf511d21b2b15cec397d6b535c9c997948c0126",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDAJAGU.PVS",
+      "relative_path": "stunts/stunts/STDAJAGU.PVS",
+      "size_bytes": 16203,
+      "sha256": "609a82e0a96fb703d8f671b011a0a779fb7fdc6c94a97a39360d20d21d8287a8",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDALANC.PVS",
+      "relative_path": "stunts/stunts/STDALANC.PVS",
+      "size_bytes": 19460,
+      "sha256": "47b9768caaa4cc88c67ff79e847dd0bc2c3fccd21c61d34a1aecb71b1b585061",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDALM02.PVS",
+      "relative_path": "stunts/stunts/STDALM02.PVS",
+      "size_bytes": 17252,
+      "sha256": "2b0c1a141bbfc2d237a7ad6f555fd10888275df3063d69430b7dd91d7658798e",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDAP962.PVS",
+      "relative_path": "stunts/stunts/STDAP962.PVS",
+      "size_bytes": 13659,
+      "sha256": "a17178accd8c46bdfbba9b81908f554db4821fa59afa6f2a0c329b22ce331d35",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDAPC04.PVS",
+      "relative_path": "stunts/stunts/STDAPC04.PVS",
+      "size_bytes": 15727,
+      "sha256": "06b5f575323e608e03093dda4c0e7560b3c26f09e40198f0e9c488d7f05fbc36",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDAPMIN.PVS",
+      "relative_path": "stunts/stunts/STDAPMIN.PVS",
+      "size_bytes": 11069,
+      "sha256": "2ae22dd37858a33dab37e38a232a3de20a6d77f9a6826a575a9196d904c1522a",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDAVETT.PVS",
+      "relative_path": "stunts/stunts/STDAVETT.PVS",
+      "size_bytes": 15240,
+      "sha256": "3c4c2408ae481bf21332cce8716ca0af14d5bf31761a5902595490b26cb989a1",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBANSX.PVS",
+      "relative_path": "stunts/stunts/STDBANSX.PVS",
+      "size_bytes": 772,
+      "sha256": "4abe8479da6d55260ade384c777141af98b1cee642468ca19fcf6804b21de449",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBAUDI.PVS",
+      "relative_path": "stunts/stunts/STDBAUDI.PVS",
+      "size_bytes": 841,
+      "sha256": "42c7253ae45c97612958c2d87c777e66c44dff6e9b97e2b9c8d2d73774386011",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBCOUN.PVS",
+      "relative_path": "stunts/stunts/STDBCOUN.PVS",
+      "size_bytes": 951,
+      "sha256": "a6ff453d39265017034da029c70692fd813c307f31a148761d5b6d64e2846324",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBFGTO.PVS",
+      "relative_path": "stunts/stunts/STDBFGTO.PVS",
+      "size_bytes": 955,
+      "sha256": "e229810bf3bcf7dafb5c37c4c45bf9a532366aa15e3951c1f470a61bc9151ff7",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBJAGU.PVS",
+      "relative_path": "stunts/stunts/STDBJAGU.PVS",
+      "size_bytes": 743,
+      "sha256": "23cb86d6cf8970adde57c1a35a0c67400313bff42c308f5c3d4d1da6156fe44e",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBLANC.PVS",
+      "relative_path": "stunts/stunts/STDBLANC.PVS",
+      "size_bytes": 1069,
+      "sha256": "9275ba85ebaae29ff1070941ca133a795c17c0bc288a6ba305424f2b0a627a50",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBLM02.PVS",
+      "relative_path": "stunts/stunts/STDBLM02.PVS",
+      "size_bytes": 912,
+      "sha256": "35612c48d1261726796d9ee8d313a64b870c320a010ffa32996e6f7cfbc5a03e",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBP962.PVS",
+      "relative_path": "stunts/stunts/STDBP962.PVS",
+      "size_bytes": 720,
+      "sha256": "747287acfcb12be1910783a8002d940b9edfef968c220de41d3a65e6a8894c6a",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBPC04.PVS",
+      "relative_path": "stunts/stunts/STDBPC04.PVS",
+      "size_bytes": 933,
+      "sha256": "3129d123e04fd6c0cb25591bd5fa80ea3edf988d24e72fe4d988bf730b670180",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBPMIN.PVS",
+      "relative_path": "stunts/stunts/STDBPMIN.PVS",
+      "size_bytes": 796,
+      "sha256": "3d5632d190a9251baa268a00cf2154865e44808b90167c904aadbd1ca7a32687",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STDBVETT.PVS",
+      "relative_path": "stunts/stunts/STDBVETT.PVS",
+      "size_bytes": 1097,
+      "sha256": "11cf1f3a19b3457e19e2f8ba774ef885ec7bb71c4e66abe97cf9fc1e043e7ebe",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "STFGTO.P3S",
+      "relative_path": "stunts/stunts/STFGTO.P3S",
+      "size_bytes": 4183,
+      "sha256": "74c9a13aa2e2898b2f9f93ff4f828ec952593ccf5782ab163580c8f4168b516c",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STJAGU.P3S",
+      "relative_path": "stunts/stunts/STJAGU.P3S",
+      "size_bytes": 5544,
+      "sha256": "694ef4f7d651b1c90498766531fe81949e9bdc9f1deef0309f18db9560c690c3",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STLANC.P3S",
+      "relative_path": "stunts/stunts/STLANC.P3S",
+      "size_bytes": 4004,
+      "sha256": "2b04b188e7af144d84a42d2d581936fc08e08421f0679971ddb6a6988fe66f37",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STLM02.P3S",
+      "relative_path": "stunts/stunts/STLM02.P3S",
+      "size_bytes": 5853,
+      "sha256": "7c1b6cee531390be1fcbbcaf19b805b707fa5b0a9db4365bcf950c619ae2c124",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STP962.P3S",
+      "relative_path": "stunts/stunts/STP962.P3S",
+      "size_bytes": 5838,
+      "sha256": "5a4ce4afafb8d5aaf1742e2bd7b15c54ae28d37b2af5ed7c12d1af934aad5940",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STPC04.P3S",
+      "relative_path": "stunts/stunts/STPC04.P3S",
+      "size_bytes": 4097,
+      "sha256": "fcfb213b7b4d1855ada36500246d5bd2e662939b257e4d12eab6518d65402c3a",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STPMIN.P3S",
+      "relative_path": "stunts/stunts/STPMIN.P3S",
+      "size_bytes": 2697,
+      "sha256": "39133a9963a2646cde87d28e12b5771e3977c5e19884132a8948ffcba241269c",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "STUNTS.COM",
+      "relative_path": "stunts/stunts/STUNTS.COM",
+      "size_bytes": 758,
+      "sha256": "15d4200c06459e263e2734d5715b067fa95a5bdaa3bab603582c728d6b12cb28",
+      "category": "Executable / Launcher"
+    },
+    {
+      "name": "STVETT.P3S",
+      "relative_path": "stunts/stunts/STVETT.P3S",
+      "size_bytes": 6283,
+      "sha256": "e8d35eac0d4fa1f9497b7956f1f6eb8e09dfe90012519e9e1833ad0a9d11064e",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "Start.exe",
+      "relative_path": "stunts/stunts/Start.exe",
+      "size_bytes": 5411,
+      "sha256": "54b224695deccf9e56c1544c423299767817e45073f60c1e5789ee2010bc5558",
+      "category": "Executable / Launcher",
+      "dos_exe_info": {
+        "is_dos_exe": true,
+        "header_paragraphs": 2,
+        "header_bytes": 32,
+        "reloc_entries": 0,
+        "reloc_table_offset": 0,
+        "initial_cs_ip": "0000:0000",
+        "initial_ss_sp": "015A:0300",
+        "min_extra_paragraphs": 182,
+        "max_extra_paragraphs": 65535,
+        "calculated_exe_size": 4752,
+        "actual_file_size": 5411,
+        "has_overlay_data": true,
+        "overlay_size": 659
+      }
+    },
+    {
+      "name": "TD15.DRV",
+      "relative_path": "stunts/stunts/TD15.DRV",
+      "size_bytes": 2993,
+      "sha256": "38c79e87a697f6cfa89169c64fb4a4dde742abdb39fc0589f9dd843a0e4b3de9",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "TDENG1.VCE",
+      "relative_path": "stunts/stunts/TDENG1.VCE",
+      "size_bytes": 912,
+      "sha256": "6086e58bd402e97d64fb851d7e17c5f25828ff3cdb242961e8c156ab6536e778",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "TDSKIDMS.VCE",
+      "relative_path": "stunts/stunts/TDSKIDMS.VCE",
+      "size_bytes": 2528,
+      "sha256": "1e9098699fe2a8bdd285ce0951b7b8ee6b85e9d48cf483cd08a09d7fe4106187",
+      "category": "Audio / Sound / Music Resource"
+    },
+    {
+      "name": "TDY.COD",
+      "relative_path": "stunts/stunts/TDY.COD",
+      "size_bytes": 55169,
+      "sha256": "f694fd506e004ef102a0a6909d38075a80a0f0d556d90f5a26f0ed1505e3880d",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "TDY.DIF",
+      "relative_path": "stunts/stunts/TDY.DIF",
+      "size_bytes": 18230,
+      "sha256": "13955cc75e8d9d217a6c2ea94c9d1d3dc1c8ca08df90a855d49d6468a819fa4a",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "TDY.HDR",
+      "relative_path": "stunts/stunts/TDY.HDR",
+      "size_bytes": 30,
+      "sha256": "a759295e4c1fd8e959d64d7f86e8fa6f4da24e4c86518e69ee7341df068ae43a",
+      "category": "Graphics / Display Driver / Code Overlay"
+    },
+    {
+      "name": "TEDIT.PRE",
+      "relative_path": "stunts/stunts/TEDIT.PRE",
+      "size_bytes": 5028,
+      "sha256": "d734ab2c824794032e041327fd7b76b38bcfbad6459f3b80778bf1df9726d310",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "THE_EDGE.HIG",
+      "relative_path": "stunts/stunts/THE_EDGE.HIG",
+      "size_bytes": 364,
+      "sha256": "834af9b38ede02a4112c41fce56d994c356b1eab3816f3b3579fcd49ce9c0c20",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "THE_EDGE.TRK",
+      "relative_path": "stunts/stunts/THE_EDGE.TRK",
+      "size_bytes": 1802,
+      "sha256": "a3c21745ccd30a03797061fdb7ded9bb2d4ee8c45563aae3fe1bd3d0e77e5bba",
+      "category": "Track Definition"
+    },
+    {
+      "name": "TITLE.P3S",
+      "relative_path": "stunts/stunts/TITLE.P3S",
+      "size_bytes": 2703,
+      "sha256": "9620ffbb27e5e30ba22855be56ace08fdb31df7b9d0a5d948d7bdf06b5a75c02",
+      "category": "3D Model / Car / Object Geometry"
+    },
+    {
+      "name": "TRICKY.HIG",
+      "relative_path": "stunts/stunts/TRICKY.HIG",
+      "size_bytes": 364,
+      "sha256": "61ba7fdce7543a8466a158e61c5fd00f8502aefe47c7396f201dcfa49f849ecc",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "TRICKY.TRK",
+      "relative_path": "stunts/stunts/TRICKY.TRK",
+      "size_bytes": 1802,
+      "sha256": "1bbf9ee2bd2b2f96f0d4d9492a9f2875d07a2773c20df5fecbca41c9e0805ded",
+      "category": "Track Definition"
+    },
+    {
+      "name": "TROPICAL.PVS",
+      "relative_path": "stunts/stunts/TROPICAL.PVS",
+      "size_bytes": 5467,
+      "sha256": "0a96c09128ed94eb148c47988f3b719e065330835372a936a68c08555d757f58",
+      "category": "Pack / Resource Container (Packed/Compressed)"
+    },
+    {
+      "name": "TRY_IT.HIG",
+      "relative_path": "stunts/stunts/TRY_IT.HIG",
+      "size_bytes": 364,
+      "sha256": "d601b0087fa70427b8d7a056df5a2cf29183420c95d7ae1bd677f76d2073b947",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "TRY_IT.TRK",
+      "relative_path": "stunts/stunts/TRY_IT.TRK",
+      "size_bytes": 1802,
+      "sha256": "158664ac0008e858e861e98eda75c760df1a50254176c1f403fc0fa99d68375d",
+      "category": "Track Definition"
+    },
+    {
+      "name": "WHAT_THE.HIG",
+      "relative_path": "stunts/stunts/WHAT_THE.HIG",
+      "size_bytes": 364,
+      "sha256": "22ac9bad34626d8c68793869113362e355dad55bf20030a76bc82ef546a61113",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "WHAT_THE.TRK",
+      "relative_path": "stunts/stunts/WHAT_THE.TRK",
+      "size_bytes": 1802,
+      "sha256": "edc70814115589a5bc638b1a79c0bebb750e1af34ff3ad0667f0758fe5d1ca33",
+      "category": "Track Definition"
+    },
+    {
+      "name": "ctrack01.hig",
+      "relative_path": "stunts/stunts/ctrack01.hig",
+      "size_bytes": 364,
+      "sha256": "cff65f1ecbd2ee8198e004181f23e0d12177d75834fbb5ece48ce37c20932418",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "ctrack01.trk",
+      "relative_path": "stunts/stunts/ctrack01.trk",
+      "size_bytes": 1802,
+      "sha256": "ae9b9dda0d1497b662fcfc3444661052f6a4eacec7bfc478fbdefa3ff84f1f6b",
+      "category": "Track Definition"
+    },
+    {
+      "name": "ctrack02.hig",
+      "relative_path": "stunts/stunts/ctrack02.hig",
+      "size_bytes": 364,
+      "sha256": "be5f24e6dc9f8859d3e35440aef61dec0107174caa087f1658b1e17a28c75dda",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "ctrack02.trk",
+      "relative_path": "stunts/stunts/ctrack02.trk",
+      "size_bytes": 1802,
+      "sha256": "d8ee19fb01e7c793cfeded0bb06ee8662fe6e9982117fb1ffc0e1f3a277a1f07",
+      "category": "Track Definition"
+    },
+    {
+      "name": "ctrack03.hig",
+      "relative_path": "stunts/stunts/ctrack03.hig",
+      "size_bytes": 364,
+      "sha256": "689f5757623b070f6b2bbd6d113b9bd32e54fe5d74fe98a248743605370a3f46",
+      "category": "Track High Scores"
+    },
+    {
+      "name": "ctrack03.trk",
+      "relative_path": "stunts/stunts/ctrack03.trk",
+      "size_bytes": 1802,
+      "sha256": "cbfe1bc56f746714aa9f1c1dec9d75ea022275750dcffcf11c3798e3efd549e5",
+      "category": "Track Definition"
+    },
+    {
+      "name": "game.ico",
+      "relative_path": "stunts/stunts/game.ico",
+      "size_bytes": 766,
+      "sha256": "13998c32b65b343dc17e30da181c110fff3ca989f33d7bfb4ab2654c48418eb7",
+      "category": "Documentation / Icon / Metadata"
+    },
+    {
+      "name": "replay.ico",
+      "relative_path": "stunts/stunts/replay.ico",
+      "size_bytes": 766,
+      "sha256": "a3a08cd377d07269849e7bb58d5d237c99e21367d64f55d43b1ad4b897e91f08",
+      "category": "Documentation / Icon / Metadata"
+    },
+    {
+      "name": "start.jpg",
+      "relative_path": "stunts/stunts/start.jpg",
+      "size_bytes": 16181,
+      "sha256": "2be855f67a7d700423a2199a7bf05716497bac466a75ad9bdd002293e52779df",
+      "category": "Documentation / Icon / Metadata"
+    },
+    {
+      "name": "welcome.htm",
+      "relative_path": "stunts/stunts/welcome.htm",
+      "size_bytes": 2007,
+      "sha256": "a82e61d6b27916249d4acecad3d2a50b5f74a4cdef6e4fc38ec2a4104a02e17e",
+      "category": "Documentation / Icon / Metadata"
+    }
+  ],
+  "category_summary": {
+    "Graphics / Display Driver / Code Overlay": 15,
+    "Audio / Sound / Music Resource": 10,
+    "Track High Scores": 41,
+    "Track Definition": 41,
+    "Pack / Resource Container (Packed/Compressed)": 57,
+    "Resource Archive / Index": 13,
+    "Replay Recording": 1,
+    "Other / Data": 1,
+    "Bitmap Font": 3,
+    "3D Model / Car / Object Geometry": 14,
+    "Executable / Launcher": 5,
+    "Configuration / Setup Data": 1,
+    "Audio / Sequence / Music Data": 4,
+    "Documentation / Icon / Metadata": 4
+  }
+}
