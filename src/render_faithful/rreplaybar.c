@@ -114,15 +114,14 @@
  * [DEVIATION] show_dialog, five call sites.  See rreplaybar.h.
  *
  * ------------------------------------------------------------------------
- * WHAT IS NOT HERE.  loc_2450A and loc_24630, the load- and save-replay
- * entries of the pause menu, need do_fileselect_dialog, do_savefile_dialog,
- * file_build_path, file_find, ported_file_load_replay_ and
- * ported_file_write_replay_.  None of the six is in this tree, so the two
- * menu entries call replaybar_hook_load_replay / _save_replay and the
- * original's control flow around them - the "file exists" and "save failed"
- * dialogs, the track/car comparison that decides whether the loaded replay
- * needs the cars rebuilding - is left for whoever ports the replay file I/O.
- * The rest of loop_game is complete.
+ * loc_2450A and loc_24630, the load- and save-replay entries of the pause
+ * menu, are ported with their control flow: the "fex" overwrite question and
+ * the rename-and-ask-again loop around it, the "ser" failure box, and the
+ * comparison of the loaded recording's landscape and car ids against the ones
+ * already set up, which is what decides whether the car shapes have to be
+ * built again.  The host supplies the two file dialogs, the file layer and
+ * ported_setup_player_cars_ through the hooks rreplaybar.h documents; the
+ * decisions are all made here.  loop_game is now complete.
  */
 #include <stdint.h>
 #include <stdio.h>
@@ -153,6 +152,7 @@ extern struct RECTANGLE* intro_draw_text(char* str, int16_t x, int16_t y,
 extern void far* file_load_resource(int16_t restype, const char* filename);
 extern void restore_gamestate(int16_t frame);
 extern void init_game_state(int16_t arg_0);
+extern void load_opponent_data(void);       /* sfopponent.c              */
 extern void update_crash_state(int16_t, int16_t);
 extern void far* fontledresptr;
 extern int16_t dialog_fnt_colour;
@@ -444,8 +444,13 @@ void far* sdgameresptr;
 /* ------------------------------------------------------------------ */
 int16_t (*replaybar_hook_dialog)(const struct replaybar_dialog*);
 int16_t (*replaybar_hook_kb_shortcut)(int16_t code);
-int16_t (*replaybar_hook_load_replay)(void);
-int16_t (*replaybar_hook_save_replay)(void);
+int16_t (*replaybar_hook_ask_loadname)(char* name, int16_t nmax);
+int16_t (*replaybar_hook_ask_savename)(char* name, int16_t nmax);
+int16_t (*replaybar_hook_replay_exists)(const char* name);
+int16_t (*replaybar_hook_load_replay)(const char* name);
+int16_t (*replaybar_hook_save_replay)(const char* name);
+void    (*replaybar_hook_rebuild_cars)(void);
+void    (*replaybar_hook_place_cars)(void);
 void    (*replaybar_hook_graphics_menu)(void);
 void    (*replaybar_hook_present)(void);
 
@@ -462,6 +467,21 @@ static int16_t rb_dialog(const char* resid, int16_t kind, int16_t nitems,
 	d.disabled = disabled;
 	return replaybar_hook_dialog(&d);
 }
+
+/* dseg: fileio.c's "a file operation is in progress" flag - the DOS build's
+ * critical-error handler reads it to decide whether a disk error is the
+ * game's fault.  fileio.c is not in the link (rfileio.c replaces its DOS
+ * half) and nothing else defines it; the two stores in loc_2466F..loc_246E8
+ * are kept because they bracket exactly what the original brackets. */
+char g_is_busy;
+
+/* [DEVIATION] seg008 show_waiting (4073..): show_dialog mode 4 with the
+ * "ewai" resource - "Please Wait...]" - `waitflag` pixels wide, drawn and
+ * left up while a file is read.  This port has no show_dialog, and the read
+ * it covers is a single fread that finishes before a frame could be shown,
+ * so it draws nothing.  waitflag is still set: it is a real global and
+ * rintro.c writes it too. */
+void show_waiting(void) { }
 
 /* [DEVIATION] the page-flip and software-cursor bracket; see the header. */
 static void rb_sprite_copy_2_to_1(void)          { }
@@ -654,8 +674,14 @@ void loop_game(int16_t arg_0, int16_t arg_2, int16_t arg_4)
 	int16_t var_1E;
 	int16_t var_18, var_inputcode;
 	int16_t var_dlg[8];                 /* [bp+var_14] .. [bp+var_6]      */
+	struct GAMEINFO var_cfg;            /* [bp+var_3E], 13 words          */
 	int16_t var_4;
 	int16_t var_2;
+	/* The original keeps the chosen name in a dseg buffer and hands its
+	 * address to do_fileselect_dialog, do_savefile_dialog and
+	 * file_build_path alike; a local serves.  A bare 8.3 name and its
+	 * terminator need 13 bytes. */
+	char var_name[16];
 	int32_t var_acc;                    /* var_22:var_24, one long        */
 	int16_t si, di;
 	int16_t page;
@@ -1069,6 +1095,10 @@ loc_24416:                             /* restart the race               */
 		(uint16_t)((gameconfig.game_framespersec & 0xFF00)
 		           | (framespersec2 & 0x00FF));
 	init_game_state(-1);
+	/* [DEVIATION] the placing half of init_game_state; see rreplaybar.h.
+	 * The same split as at loc_24619 - restarting a race has to put the
+	 * cars back on the start tile just as loading a recording does. */
+	if (replaybar_hook_place_cars) replaybar_hook_place_cars();
 	elapsed_time2 = 0;
 	gameconfig.game_recordedframes = 0;
 	/* mov byte ptr word_45D3E, 0 - likewise the low byte only */
@@ -1112,25 +1142,99 @@ loc_244B0:
 loc_2450A:                             /* load a replay                  */
 	byte_43966 = 0;
 	audio_carstate();
-	/* [DEVIATION] the original's do_fileselect_dialog +
-	 * ported_file_load_replay_ + the track/car comparison that decides
-	 * whether the cars need rebuilding; see "WHAT IS NOT HERE". */
-	if (replaybar_hook_load_replay && replaybar_hook_load_replay()) {
-		framespersec = (uint16_t)(uint8_t)gameconfig.game_framespersec;
-		init_game_state(-1);
+	/* [DEVIATION] do_fileselect_dialog(byte_3B85E, dir, ".rpl", "rep").
+	 * The dialog is the host's; everything it feeds is not. */
+	si = replaybar_hook_ask_loadname
+	   ? replaybar_hook_ask_loadname(var_name, (int16_t)sizeof var_name) : 0;
+	if (si == 0) goto loc_24828;                             /* loc_24548 */
+	waitflag = 0x96;
+	show_waiting();
+	/* `mov si, 9234h ; mov cx, 0Dh ; repne movsw` - the 13 words at dseg
+	 * 0x9234 are gameconfig, so this is a copy of the header as it stands
+	 * before the load, kept to compare against afterwards. */
+	var_cfg = gameconfig;
+	/* td14_elem_map_main[0x384] is the landscape byte between the two
+	 * halves of a .TRK - the horizon panorama's index (rdata.c, and
+	 * game_init reads it the same way). */
+	var_4 = (int16_t)td14_elem_map_main[0x384];
+	/* The read lands the new header in gameconfig and, because trakdata
+	 * runs td13 -> td14 -> td15 -> td16 with no gaps, the recording's own
+	 * track in the two maps and its inputs in the replay buffer. */
+	if (!replaybar_hook_load_replay
+	    || replaybar_hook_load_replay(var_name) != 0)
+		gameconfig.game_recordedframes = 0;
+loc_2458B:
+	dashb_toggle = 0;
+	/* the maps have just been replaced, so every table derived from them
+	 * has to be built again.  [ODDITY] the original ignores the error
+	 * code, and so does this: a track that will not build leaves the
+	 * previous run's tables in place rather than refusing the replay. */
+	track_setup();
+	si = 0;
+	if ((int16_t)td14_elem_map_main[0x384] != var_4) si = 1;
+	/* loc_245AA..loc_245D0.  Four bytes of player car id, then the
+	 * opponent type, then - only when there is an opponent - four bytes of
+	 * its car id.  Any difference means the shapes on hand are the wrong
+	 * ones; all four the same means the opponent's own data can simply be
+	 * read again for the new track. */
+	if (memcmp(gameconfig.game_playercarid,
+	           var_cfg.game_playercarid, 4) != 0) {
+		si = 1;                                          /* loc_245CA */
+	} else if (gameconfig.game_opponenttype != var_cfg.game_opponenttype) {
+		si = 1;
+	} else if (gameconfig.game_opponenttype != 0) {
+		if (memcmp(gameconfig.game_opponentcarid,
+		           var_cfg.game_opponentcarid, 4) != 0) {
+			si = 1;
+		} else {
+			/* [DEVIATION] ensure_file_exists(2) is the DOS
+			 * "insert disk B" prompt; externs.h declares it and
+			 * nothing in this tree defines it. */
+			load_opponent_data();
+		}
 	}
+loc_2460D:
+	if (si != 0 && replaybar_hook_rebuild_cars) replaybar_hook_rebuild_cars();
+loc_24619:
+	framespersec = (uint16_t)(uint8_t)gameconfig.game_framespersec;
+	init_game_state(-1);
+	/* [DEVIATION] init_game_state's own second half; see rreplaybar.h. */
+	if (replaybar_hook_place_cars) replaybar_hook_place_cars();
 	goto loc_24828;
 
 loc_24630:                             /* save the replay                */
 	audio_carstate();
 loc_24635:
 	var_1E = 0;
-	/* [DEVIATION] do_savefile_dialog, file_build_path, file_find, the
-	 * "fex" overwrite dialog, ported_file_write_replay_ and the "ser"
-	 * failure box.  The hook stands in for all six. */
-	if (replaybar_hook_save_replay) var_1E = replaybar_hook_save_replay();
-	(void)var_1E;
-	goto loc_24828;
+loc_24639:
+	/* var_1E is the original's byte: 0 "ask for a name", 1 "write it",
+	 * 0xFF "give up".  Anything but 0 leaves. */
+	if (var_1E != 0) goto loc_24828;
+	if (!replaybar_hook_ask_savename
+	    || replaybar_hook_ask_savename(var_name,
+	                                   (int16_t)sizeof var_name) == 0) {
+		var_1E = 0xFF;                                   /* loc_246F0 */
+	} else {
+		var_1E = 1;                                      /* loc_2466F */
+		g_is_busy = 1;
+		if (replaybar_hook_replay_exists
+		    && replaybar_hook_replay_exists(var_name)) {
+			/* "File Exists!]}[Rename File[Save File]" - button 0
+			 * asks again, button 1 overwrites, Esc gives up. */
+			si = rb_dialog("fex", 2, 2, NULL);
+			if (si == -1)     var_1E = 0xFF;         /* loc_246D8 */
+			else if (si == 0) var_1E = 0;            /* loc_246E0 */
+		}
+		g_is_busy = 0;
+	}
+loc_246F4:
+	if (var_1E != 1) goto loc_24639;
+	if (!replaybar_hook_save_replay
+	    || replaybar_hook_save_replay(var_name) != 0) {
+		rb_dialog("ser", 1, 0, NULL);            /* "File Save Error!" */
+		goto loc_24635;                                  /* loc_24712 */
+	}
+	goto loc_24639;   /* var_1E is 1, so this falls straight out */
 
 loc_24748:                             /* carry on watching              */
 	update_crash_state(4, 0);

@@ -48,7 +48,24 @@ void update_player_state(struct CARSTATE* arg_pState, struct SIMD* arg_pSimd, st
 	int16_t var_pSpeed2Scaled;
 	struct VECTOR vec_FC;
 	struct VECTOR vec_1C6;
-	int16_t var_140someWhlData[4];
+	/* [bp+var_140someWhlData], seg001.asm 862.  A stack local that the
+	 * original writes ONLY at loc_14FAC, which is reached only while
+	 * var_pSpeed2Scaled != 0 - i.e. only while the car is moving - but reads
+	 * unconditionally at loc_15882, loc_159AD and loc_15A30, the three
+	 * wheel-on-surface paths.  Once the car has stopped the original
+	 * therefore reads the frame slot back as the last frame that moved left
+	 * it, because update_player_state is re-entered on the same stack frame
+	 * every time.  An ordinary C local reads zero instead, and the two only
+	 * part company when a stopped car's wheel touches down: PIPEFLIP frame
+	 * 423, where the slot still holds car_36MwhlAngle = 983 from frame 420,
+	 * the last frame with speed2 != 0.  Zero instead of 983 turns
+	 * plane_rotate_op's `si += pState_f36Mminf40sar2` into a 41/1024 turn of
+	 * the surface push, which is the whole of the PIPEFLIP deviation.
+	 * Indexed by the caller because the player's and the opponent's calls
+	 * come through differently sized frames (player_op / opponent_op) and so
+	 * land on different stack slots in the original.  */
+	static int16_t var_140persist[2][4];
+	int16_t* var_140someWhlData = var_140persist[arg_MplayerFlag != 0];
 	struct VECTORLONG* var_DEptrTo1C0;
 	struct VECTORLONG* var_146ptrTo176;
 	int16_t pState_f40_sar2;

@@ -60,9 +60,9 @@ done
 # ------------------------------------------------------------------ #
 if [ "$WHICH" = allt ] || [ "$WHICH" = fysik ]; then
 say "Fysik mot DOS-facit"
-# TUBETEST..T_HELL4 must be 16/16 and 100.00%. PIPEFLIP is the one known
-# open deviation (frame 423); it is checked so a *change* shows up, not
-# because it passes.
+# All six must be 16/16 and 100.00%. PIPEFLIP was the last open deviation
+# (frame 423, the uninitialised var_140someWhlData slot - see
+# docs/PIPEFLIP_DIVERGENCE.md); it now matches like the rest.
 for t in TUBETEST HILLTEST PIPEROLL T_HELL2 T_HELL4 PIPEFLIP; do
 	[ -f "build/oracle_run/$t.BIN" ] || { printf '  --    %s (inget facit)\n' "$t"; continue; }
 	STUNTS_KEVINSEED="$SEED" ./bin/dump_native_states \
@@ -70,7 +70,6 @@ for t in TUBETEST HILLTEST PIPEROLL T_HELL2 T_HELL4 PIPEFLIP; do
 	res=$(python3 tools/diff_oracle.py "build/oracle_run/$t.BIN" "$TMP/$t.bin" 2>&1 |
 	      awk '/byte-över/{b=$NF} /identiska hela/{n++} END{printf "%d/16 %s", n, b}')
 	want="16/16 100.00%"
-	[ "$t" = PIPEFLIP ] && want="10/16 98.30%"
 	if [ "$res" = "$want" ]; then ok "$t  $res"; else bad "$t  $res (vantat $want)"; fi
 done
 fi

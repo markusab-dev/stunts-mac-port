@@ -20,7 +20,10 @@ The physics is compared against the real DOS build running under DOSBox, one
 | PIPEROLL | 16/16 | 100.00% |
 | T_HELL2 | 16/16 | 100.00% |
 | T_HELL4 | 16/16 | 100.00% |
-| PIPEFLIP | 10/16 | 98.30% — one known open deviation, frame 423 |
+| PIPEFLIP | 16/16 | 100.00% |
+
+Every frame of all six is byte-identical to the DOS build outside
+`opponentstate`, which these recordings never use.
 
 Plus: all 39 shipped tracks start, all 11 cars and all 6 opponents run, no
 unpainted pixels across 12 replays, and rewinding restores the game state

@@ -1,147 +1,141 @@
-# PIPEFLIP: the last physics deviation, narrowed
+# PIPEFLIP: the last physics deviation - found and closed
 
-The one track that is not 16/16 against the DOS oracle. This is what is
-actually known, measured rather than reasoned.
+PIPEFLIP is now 16/16 and 100.00%, like the other five oracle tracks, and
+every frame is byte-identical to the DOS build outside `opponentstate`.
 
-## It starts at frame 422, not 423
+The cause was **an uninitialised stack local that the original relies on
+keeping its value between frames**. Nothing to do with rounding.
 
-The summary in `tools/diff_oracle.py` reports 423 because it prints the first
-divergence *per field* and the fields are ordered. Comparing whole CARSTATE
-blocks, frame 421 is byte-identical and frame 422 is not.
+## What it was
 
-## The car is in the air
+`update_player_state` has a four-word stack local, `var_140someWhlData`
+(`seg001.asm:862`, `[bp-140h]`). Across the whole 2700-line routine it is
 
-`pos.y` over frames 419..424: 202309639, 170196999, 117702663, 64356359,
-15597575, 7. It is falling, and it lands at frame 424 — after which the state
-stops changing entirely (424, 425 and 426 are identical). So the whole
-deviation happens during one fall and its landing.
+* **written in exactly one place**, `loc_14FAC` (`seg001.asm:1099`), and
+* **read in three**, `loc_15882`, `loc_159AD` and `loc_15A30`
+  (`seg001.asm:1977, 2091, 2250`) - the three wheel-touches-surface paths.
 
-## The shape of the error rules most things out
+The write is inside the wheel-integration loop, and that loop only reaches
+`loc_14FAC` when `var_pSpeed2Scaled != 0`, i.e. **only while the car is
+moving**. The reads are unconditional.
 
-At frame 422:
+So once a car has stopped, the original keeps reading the slot back exactly
+as the last moving frame left it - `update_player_state` is re-entered on the
+same stack frame every time, so the memory is still there. It is uninitialised
+in the C sense and perfectly deterministic in practice.
 
-| Field | Oracle | Ours | Difference |
-|---|--:|--:|--:|
-| pos.x | -2066546686 | -2066808830 | 4 whole units |
-| pos.y | 64356359 | 64159751 | 3 whole units |
-| pos.z | -1818427392 | -1819672576 | 19 whole units |
-| rot.y (pitch) | 253 | 251 | 2 |
-| pseudoGravity | -434 | -431 | 3 |
+The port declared it as an ordinary C local. Ours read zero.
 
-Positions are 16.16 fixed point, and **all three fractional halves are
-identical** (0x0002, 0x0007, 0x0000). Only the whole-unit halves differ. That
-is not accumulated rounding drift — it is one term, computed once, coming out
-different.
+## Why it only showed on this one track, at this one frame
 
-Everything that *drives* the motion is identical for the entire 900 frames:
-speed, speed2, rpm, gear, gearratio, steeringAngle, surfFront, surfRear,
-surfAll. So this is not a physics-input difference.
+The value only matters when a **stopped** car's wheel is pushed out of a
+surface, which needs all three of:
 
-## The first-order cause is the pitch
+| condition | PIPEFLIP |
+|---|---|
+| `car_speed2 == 0` (so the slot is stale) | from frame 420 - the car has crashed |
+| a wheel below the plane (`nextPosAndNormalIP < 0`) | wheel 3, first time at frame 423 |
+| that wheel taking the `loc_15A30` push-out path | frame 423 and after |
 
-`pseudoGravity` is derived from the rotation, not independently
-(`stateply.c:110`):
+Frames 421 and 422 have wheel 3 in contact but only falling (the gravity step
+at `loc_15642`), which never reads the slot. Frame 423 is the first push-out,
+and it is where the two runs part company. The other five tracks never stop
+the car on a surface, so their 4500 frames never read a stale slot.
+
+## The measurement that pinned it
+
+Diffing whole CARSTATE blocks (rather than field by field) shows frame 422
+0-based - 423 in the dump's 1-based numbering - as the first differing frame,
+with **eleven bytes** out: `pos1.x/y/z`, `rot.x` (heading), `rot.z` (roll),
+`field_48`, and five `car_whlWorldCrds` words. `rot.y` (pitch) is identical.
+
+Instrumenting our own port to dump `vecl_1C0` per wheel and per pass gives the
+rest. After the collision pass wheel 3 should be at
+
+    (494567, 987, 1087631)   but we produce   (494551, 975, 1087555)
+
+and the other three wheels agree. (The target is fixed by the oracle's own
+dump: `car_whlWorldCrds1[i]` is that long `>> 6`, and `car_posWorld1` is the
+four longs summed and `>> 2`.)
+
+That wheel's new position is `prev + vec_C + vec_planerotopresult`, and since
+`vec_C` is `(0, -100, 0)` here, the x and z error must be entirely in
+`vec_planerotopresult` - the surface push. Ours is `(-265, -175, 46)`, and it
+has to be about `(-249, -166, 122)`: **the same length, a different
+direction**, roughly 14 degrees apart. Rounding cannot do that.
+
+`plane_rotate_op` builds that push as `planeRotation * rotY(-si) * (0,0,EE)`,
+with
 
 ```c
-vec_1C6 = { 0, 0, 0x82 };
-mat_mul_vector(&vec_1C6, &mat_unk, &vec_FC);
-arg_pState->car_pseudoGravity = -vec_FC.y;
+si = polarAngle(-var_32.x, var_32.z) + pState_f36Mminf40sar2;
 ```
 
-so its 3-unit difference is a consequence of the 2-unit pitch difference, not
-a second fault. Likewise the positions: a 2-unit pitch error over one airborne
-step produces exactly this order of positional drift.
+Sweeping `si` and `EE` over every value that reproduces the required x and z
+puts the answer at `si` ~ 191 with `EE` ~ 320. We compute `EE = 320` and
+`si = 232`, from `polarAngle(214, 32) = 232` plus
+`pState_f36Mminf40sar2 = var_140someWhlData[3] = 0`.
 
-Rotation is written back in one place (`stateply.c:3319`):
+    232 + 983 = 1215,  1215 & 0x3FF = 191
+
+and 983 is exactly `car_36MwhlAngle` on frames 414..420 - the value the slot
+was last written with, on frame 420, the last frame with `speed2 != 0`. The
+arithmetic closes on the nose.
+
+## The fix
+
+`src/sim_faithful/stateply.c`, in `update_player_state`:
 
 ```c
-arg_pState->car_rotate.y = pState_minusRotate_x_1;
+static int16_t var_140persist[2][4];
+int16_t* var_140someWhlData = var_140persist[arg_MplayerFlag != 0];
 ```
 
-and in the airborne branch that value comes from `stateply.c:2359`:
+`static` is the C spelling of "the same stack slot every call", which is what
+the original gets for free. It is indexed by the caller because the player's
+and the opponent's calls arrive through differently sized frames (`player_op`
+and `opponent_op`), so in the original they land on different slots; the five
+oracle tracks have no opponent, so only slot 0 is exercised by the bar.
 
-```c
-pState_minusRotate_x_1 = polarAngle(-var_F2, var_F4) - 0x100;
-```
+## Things this ruled out along the way
 
-## The rounding direction is measurable, and it points one way
+The earlier version of this document argued for a `>>`-versus-`/` rounding
+mismatch. That was wrong, and so were two of its premises:
 
-Diffing every 16-bit slot in CARSTATE for fields that are identical at frame
-421 and differ at 422 gives eleven, and two of them are the tell:
+* **The positions are not 16.16 fixed point.** They are plain 32-bit world
+  units; `pos1.y` runs 3597, 3087, 2597, 1796, 982, 238, 0. The claim that
+  "all three fractional halves are identical" came from reading the low word
+  of an integer.
+* **The field offsets were one slot off.** The value quoted as `+0x0A2`
+  going 10, -2, -12/-13 is `car_whlWorldCrds2[3].y` at `+0x0A0`, and
+  `car_whlWorldCrds2` is written at `loc_16309` from the *final* rotation
+  matrix - downstream of the position and rotation, so a consequence rather
+  than a cause. Likewise the "pitch" that differs by 2 is `car_rotate.x`,
+  the heading; the pitch `car_rotate.y` is identical at frame 422.
 
-| Offset | frame 420 | 421 | 422 oracle / ours |
-|---|--:|--:|--:|
-| +0x0A2 | 10 | -2 | **-12 / -13** |
-| +0x096 | 43 | 28 | **12 / 13** |
-| +0x04A | 193 | 201 | 235 / 233 |
-| +0x08C | 16988 | 16991 | 16994 / 16993 |
-| +0x09E | 16948 | 16951 | 16952 / 16951 |
-| +0x0A4 | 16974 | 16977 | 16979 / 16978 |
+A scan of every C statement in `src/sim_faithful/` and `src/render_faithful/`
+against the assembly carried in its own comment block found **no** place where
+the C shifts and the original divides, or vice versa. Checked by hand against
+the disassembly and found faithful: `mat_mul_vector`, `mat_multiply`,
+`mat_invert`, `polarAngle` (`int_atan2`, restunts2 seg012.asm:33),
+`polarRadius2D`/`3D` (`int_hypot`, seg012.asm:3081), `multiply_and_scale`,
+`vec_normalInnerProduct` and `plane_origin_op` (seg001.asm:9065, 9133 - both
+use `__aFldiv`, which truncates toward zero like C), and `carState_rc_op`.
 
-`+0x0A2` has just crossed zero going down — 10, then -2, then -12 in the
-oracle and **-13** in ours. -12 is what rounding *toward zero* gives; -13 is
-what rounding *toward negative infinity* gives.
+## Instrumenting the oracle, if it is ever needed again
 
-In C, `x / n` on a negative value rounds toward zero. An arithmetic right
-shift, `x >> n`, rounds toward negative infinity. The 8086's `idiv` rounds
-toward zero and `sar` rounds toward negative infinity.
+Getting inside a DOS frame is possible and worth writing down.
+`build/oracle_build/src/restunts/asmorig/seg001.asm` can be patched to copy
+stack locals into `state.game_longs` (288 bytes, which `diff_oracle.py`
+already reports separately), and `tools/build_oracle.sh` picks the edit up
+without re-copying the reference tree.
 
-**So we are shifting where the original divides**, on a value that has just
-gone negative — which is why this appears on one track, at one frame, in one
-fall, and nowhere in the other five tracks' 4500 frames.
+One trap: `game_longs` is **read back** by `sub_19BA0`, the crash-debris
+updater, which `update_gamestate` calls *after* `update_player_state` returns
+(`seg001.asm:4488`). Parking probe values there mid-frame makes the debris
+immortal and the run never finishes. Park at the end of `update_gamestate`
+and put the real values back at its start.
 
-`+0x096` moves the other way (ours 13 against the oracle's 12), which is
-consistent: it is the negation of the same quantity, so one unit more negative
-underneath shows up as one unit higher here.
-
-## Where to look next
-
-
-`var_F2` and `var_F4` are the velocity components fed to `polarAngle`. They
-are **not** among the fields the oracle comparison covers, which is why the
-divergence appears to arrive out of nowhere at 422 — the inputs had already
-parted company and nothing was watching them.
-
-Grep the airborne path in `src/sim_faithful/stateply.c` for `>>` applied to a
-signed quantity that feeds `+0x0A2`, and check each against its line in
-`seg001.asm`: if the assembly has `cwd` followed by `idiv`, the C must be `/`,
-not `>>`. The two agree on positive values, which is why every other track
-passes.
-
-Do **not** widen `CAR_FIELDS` in `tools/diff_oracle.py` to chase this without
-also updating `tools/verify.sh`: the bar counts the "identiska hela vägen"
-lines and expects 16, so adding fields turns every track red for the wrong
-reason.
-
-## Ruled out: mat_mul_vector
-
-The obvious suspect was `mat_mul_vector` (`src/render_faithful/math.c:137`),
-which scales nine signed products with `>> 14`. It transforms the wheel
-coordinates that `var_F2` and `var_F4` are summed from, so a rounding error
-there would land exactly where this one does.
-
-**It is correct.** restunts2's `vec_transform_asm_` (seg012.asm:8753), which
-is what `mat_mul_vector` actually calls through, does:
-
-```asm
-imul    cx          ; dx:ax = signed 32-bit product
-shl     ax, 1
-rcl     dx, 1
-shl     ax, 1
-rcl     dx, 1       ; result taken from dx
-```
-
-Shifting the 32-bit product left by two and keeping the high word *is*
-`product >> 14` with truncation toward negative infinity — the same thing C's
-`>>` does on a signed value. No division, no rounding toward zero. The port
-matches.
-
-So the mismatch is somewhere else in the chain, and one of the two most
-likely places is now eliminated rather than merely un-checked.
-
-(Note for whoever continues: restunts1 has no `mat_mul_vector` label at all -
-only restunts2 carries it, and only under the name `vec_transform`. That is
-the second time restunts2 has been the tree with the answer, after the
-symbolic dseg tables.)
-
-Everything else is 16/16 and 100.00%, so whatever this is, it is narrow.
+In the end the port's own instrumentation was enough, because the oracle dump
+already pins the wheel longs to within 64 through `car_whlWorldCrds1` and
+their sum exactly through `car_posWorld1`.

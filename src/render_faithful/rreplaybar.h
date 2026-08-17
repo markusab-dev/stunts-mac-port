@@ -70,12 +70,65 @@ extern int16_t (*replaybar_hook_dialog)(const struct replaybar_dialog*);
  * it `void`, but seg005:24121 tests its return in al; hence the hook. */
 extern int16_t (*replaybar_hook_kb_shortcut)(int16_t code);
 
-/* seg005 loc_2450A / loc_24630 - the load and save replay menu items.  The
- * original drives do_fileselect_dialog / do_savefile_dialog and then
- * ported_file_load_replay_ / ported_file_write_replay_; none of the four is
- * in this tree.  Return non-zero when a file was actually read or written. */
-extern int16_t (*replaybar_hook_load_replay)(void);
-extern int16_t (*replaybar_hook_save_replay)(void);
+/*
+ * seg005 loc_2450A / loc_24630 - the load and save replay menu items.
+ *
+ * Both are ported in full, control flow included: the "fex" overwrite
+ * question and its rename-and-try-again loop, the "ser" failure box, and the
+ * track/car comparison that decides whether the car shapes have to be built
+ * again for a recording made with a different car.  What is left to the host
+ * is only what this port keeps on its side of the line everywhere else:
+ *
+ *   - the two file dialogs.  do_fileselect_dialog and do_savefile_dialog
+ *     (seg008 1207..1984 and 2043..2191) go through show_dialog and the DOS
+ *     mouse driver, neither of which is here;
+ *   - the file layer.  fileio.c's DOS half is replaced by rfileio.c, so
+ *     file_find and ported_file_load_replay_ / ported_file_write_replay_
+ *     are the host's;
+ *   - ported_free_player_cars_ / ported_setup_player_cars_, and the car
+ *     placement at the end of init_game_state (seg001 4021..), which in
+ *     this port lives in main_native.c's game_init.
+ *
+ * `name` throughout is a bare file name - no directory, no ".rpl" - which is
+ * exactly what do_fileselect_dialog writes and what file_build_path is then
+ * handed.  With a hook left NULL its call site behaves the way the original
+ * behaves when the corresponding dialog is cancelled or the file cannot be
+ * opened, so the bar stays usable.
+ */
+
+/* do_fileselect_dialog / do_savefile_dialog.  Non-zero when a name was
+ * given; `nmax` counts the terminator. */
+extern int16_t (*replaybar_hook_ask_loadname)(char* name, int16_t nmax);
+extern int16_t (*replaybar_hook_ask_savename)(char* name, int16_t nmax);
+
+/* file_build_path + file_find (seg005:2687): is there a <name>.rpl already? */
+extern int16_t (*replaybar_hook_replay_exists)(const char* name);
+
+/* ported_file_load_replay_ (seg005:1925) and ported_file_write_replay_
+ * (seg005:1967).  Both answer in the original's own sense: 0 when the file
+ * was read or written, non-zero on failure - loc_2458B zeroes
+ * game_recordedframes after a failed read, loc_24712 puts up "ser" after a
+ * failed write.
+ *
+ * A .RPL is 26 bytes of GAMEINFO, then the 1802-byte track - the two
+ * 901-byte maps - then one input byte per recorded frame.  That layout is
+ * not a guess: the original reads the whole file into td13_rpl_header, and
+ * trakdata puts td14_elem_map_main, td15_terr_map_main and td16_rpl_buffer
+ * immediately after it (sfdata.c:210), so a single read lands the header,
+ * the track and the inputs where the game wants them.  The write is
+ * `game_recordedframes + 724h` bytes, and 0x724 is 26 + 1802. */
+extern int16_t (*replaybar_hook_load_replay)(const char* name);
+extern int16_t (*replaybar_hook_save_replay)(const char* name);
+
+/* seg005 loc_2460D: ported_free_player_cars_ + ported_setup_player_cars_,
+ * run only when the comparison above found the recording needs other cars. */
+extern void (*replaybar_hook_rebuild_cars)(void);
+
+/* [DEVIATION] seg001 4021.. - the second half of init_game_state, which puts
+ * the two cars on the start tile.  sim_faithful's init_game_state has only
+ * the first half (sfasm_port.c:2101); the placement is game_init's.  Called
+ * where the original's own init_game_state(-1) would have done it. */
+extern void (*replaybar_hook_place_cars)(void);
 
 /* seg005 loc_2480A - the "mdo" menu's graphics entry. */
 extern void (*replaybar_hook_graphics_menu)(void);

@@ -28,10 +28,11 @@
 #include "render_faithful/rintro.h"
 /* Phase 11. Four screens that arrived as separate ports and are driven from
  * here: the in-race recording strip, the track editor and its icon palette,
- * and the joystick. rdialog.c (seg008 show_dialog) is linked but not called
- * yet - the editor's five dialogs are raised through reditor_activate(), and
- * that loop is not built. */
+ * and the joystick. rdialog.c (seg008 show_dialog) drives the replay bar's
+ * five dialogs, below; the editor's are raised through reditor_activate(),
+ * and that loop is not built. */
 #include "render_faithful/rreplaybar.h"
+#include "render_faithful/rdialog.h"
 #include "render_faithful/reditor.h"
 #include "render_faithful/reditoricons.h"
 #include "render_faithful/rjoystick.h"
@@ -101,6 +102,7 @@ extern char cameramode, followOpponentFlag;
 extern void update_frame(char arg_0, struct RECTANGLE* cliprect);
 extern void rblit_init(void);
 extern void rfileio_set_data_dir(const char* dir);
+extern const char* rfileio_get_data_dir(void);
 extern uint8_t rfb_pixels[];
 extern void copy_material_list_pointers(int16_t*, int16_t*, int16_t*, int16_t*, int16_t);
 extern int16_t *material_clrlist_ptr, *material_clrlist2_ptr;
@@ -219,9 +221,18 @@ static void present(const stunts_palette_t* pal)
 static SDL_Renderer* rb_present_ren;
 static SDL_Texture*  rb_present_tex;
 
+static void rb_key_pump(void);
+
 static void replaybar_present(void)
 {
 	if (!rb_present_ren || !rb_present_tex) return;
+	/* The scripted-key pump gets its turn here as well as in the race loop.
+	 * loop_game(3, ...) spins inside itself for as long as the strip is
+	 * paused - which is what the pause menu leaves it - and the race loop
+	 * never comes round again, so a script that has to press Play to carry
+	 * on would otherwise wait for a key that nothing can push. Does nothing
+	 * unless STUNTS_REPLAYBAR_KEYS is set. */
+	rb_key_pump();
 	SDL_UpdateTexture(rb_present_tex, NULL, frame_rgba, VIEW_W * 4);
 	SDL_RenderClear(rb_present_ren);
 	SDL_RenderCopy(rb_present_ren, rb_present_tex, NULL, NULL);
@@ -1076,6 +1087,9 @@ static void run_opponent_dialog(SDL_Window* win, SDL_Renderer* ren,
 /* the two routines are transcribed here against the same globals.     */
 /* ------------------------------------------------------------------ */
 #define RPL_MAX 12000            /* td16_rpl_buffer is 0x2EE0 bytes */
+/* 26 bytes of GAMEINFO + the 1802-byte track: where a .RPL's input bytes
+ * start.  See THE FILE FORMAT over the replay bar's hooks below. */
+#define RPL_DATA_OFS 0x724
 
 static int16_t file_write_replay(const char* filename)
 {
@@ -1088,6 +1102,40 @@ static int16_t file_write_replay(const char* filename)
 	n += fwrite(td16_rpl_buffer, 1, gameconfig.game_recordedframes, f);
 	fclose(f);
 	return n == sizeof(struct GAMEINFO) + gameconfig.game_recordedframes;
+}
+
+/* Reading one back. stunts_load_replay() takes the inputs to start right
+ * after the 26-byte header, which is what this port's own recordings look
+ * like - but a .RPL the game wrote has the whole track in between, so its
+ * first 1802 input bytes would be the track map read as steering. (Play the
+ * shipped DEFAULT.RPL and the car sets off on a recording of HELL5.TRK.)
+ * The two layouts tell themselves apart by length, and there is no overlap:
+ * one is 26 + frames long and the other 1828 + frames. See THE FILE FORMAT
+ * over the replay bar's hooks for where 1828 comes from. */
+static bool load_replay_file(const char* path, stunts_game_info_t* info,
+                             uint8_t** inputs, uint16_t* count)
+{
+	FILE* f;
+	long len = 0;
+	if (!stunts_load_replay(path, info, inputs, count)) return false;
+	f = fopen(path, "rb");
+	if (f) {
+		fseek(f, 0, SEEK_END);
+		len = ftell(f);
+		if (len == (long)RPL_DATA_OFS + info->recorded_frames) {
+			size_t n;
+			fseek(f, RPL_DATA_OFS, SEEK_SET);
+			n = fread(*inputs, 1, info->recorded_frames, f);
+			if (n < info->recorded_frames) {
+				info->recorded_frames = (uint16_t)n;
+				*count = (uint16_t)n;
+			}
+			printf("inspelningen har banan inbakad (%ld byte), "
+			       "styrningen borjar vid %d\n", len, RPL_DATA_OFS);
+		}
+		fclose(f);
+	}
+	return true;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1766,6 +1814,581 @@ static int16_t run_result_screen(SDL_Window* win, SDL_Renderer* ren,
 	return choice;
 }
 
+/* ------------------------------------------------------------------ */
+/* The three blocks of game_init that a replay load has to run again.  */
+/*                                                                     */
+/* seg005 loc_2450A reloads a race from a .RPL header, and the original */
+/* does it with ported_free_player_cars_ + ported_setup_player_cars_    */
+/* followed by init_game_state, whose second half places the cars. This */
+/* port has neither routine: game_init did all of it inline, once. So   */
+/* the three pieces are lifted out here, byte for byte, and called both */
+/* from game_init and from the replay bar's hooks. Every id they need   */
+/* is read from gameconfig, which is where the .RPL header has just     */
+/* landed - and which game_init fills in from the command line first.   */
+/* ------------------------------------------------------------------ */
+
+/* One car's SIMD block and its aero table (setup_aero_trackdata). */
+static bool load_one_simd(const char* what, const char* carid,
+                          struct SIMD* out, int16_t* aero)
+{
+	char p[600];
+	stunts_res_archive_t* a;
+	const stunts_sub_resource_t* sd;
+	size_t k;
+	int i;
+	snprintf(p, sizeof(p), "%s/CAR%.4s.RES", rfileio_get_data_dir(), carid);
+	a = stunts_asset_load_archive(p);
+	if (!a) { fprintf(stderr, "kan inte ladda %s %s\n", what, p); return false; }
+	sd = stunts_asset_find_resource(a, "simd");
+	if (!sd) { fprintf(stderr, "%s saknar simd-block\n", what); return false; }
+	k = sd->size < sizeof(struct SIMD) ? sd->size : sizeof(struct SIMD);
+	memcpy(out, sd->data, k);
+	/* aerorestable is a pointer into trakdata in the original */
+	for (i = 0; i < 0x40; i++)
+		aero[i] = (int16_t)(((int32_t)out->aero_resistance * i * i) >> 9);
+	out->aerorestable = aero;
+	return true;
+}
+
+/* restunts.c setup_player_cars(): the opponent gets the same treatment as
+ * the player - its own SIMD, its own aero table - and only then is
+ * load_opponent_data() allowed to run, because that routine needs
+ * track_setup()'s td01/td02/td17 tables, which must already be built. */
+static bool setup_player_cars(void)
+{
+	if (!load_one_simd("bilen", gameconfig.game_playercarid,
+	                   &simd_player, s_aero)) return false;
+	if (gameconfig.game_opponenttype != 0) {
+		if (!load_one_simd("motstandarbilen", gameconfig.game_opponentcarid,
+		                   &simd_opponent, s_aero_opp)) return false;
+		load_opponent_data();
+		printf("motstandare %d (%s), bil %.4s, korlinje %d rutor, kostnad %ld\n",
+		       (int)gameconfig.game_opponenttype, g_opponent_initials,
+		       gameconfig.game_opponentcarid,
+		       sfopp_path_len, (long)sfopp_path_cost);
+	}
+	return true;
+}
+
+/* The 3D car shapes and the cockpit bitmaps. setup_car_shapes(0) is what
+ * fills in roofbmpheight and dashbmp_y, which decide the windshield height. */
+static void load_car_shapes(void)
+{
+	char carid[5] = {0}, oppid[5] = { (char)0xFF, 0, 0, 0, 0 };
+	memcpy(carid, gameconfig.game_playercarid, 4);
+	if (gameconfig.game_opponenttype != 0)
+		memcpy(oppid, gameconfig.game_opponentcarid, 4);
+	shape3d_load_car_shapes(carid, oppid);
+	setup_car_shapes(0);
+}
+
+/* Start placement: tile centre + (210 back, 36 lateral), per restunts.c
+ * init_game_state (seg001 4021..). Identical to the code verified against
+ * the oracle in tools/dump_native_states.c; track_angle and hillFlag come
+ * from track_setup() rather than being assumed zero. */
+static void place_cars_at_start(void)
+{
+	int16_t a = track_angle;
+	int32_t tmpcol = multiply_and_scale(sin_fast((uint16_t)(a + 0x200)), 210)
+	               + multiply_and_scale(sin_fast((uint16_t)(a + 0x100)), 36);
+	int32_t tmprow = multiply_and_scale(cos_fast((uint16_t)(a + 0x200)), 210)
+	               + multiply_and_scale(cos_fast((uint16_t)(a + 0x100)), 36);
+	int32_t cx = ((int32_t)startcol2 * 1024 + 512) + tmpcol;
+	int32_t cz = ((int32_t)(29 - startrow2) * 1024 + 512) + tmprow;
+	init_carstate(&state.playerstate, &simd_player, 1,
+	              cx * 64,
+	              (int32_t)hillHeightConsts[(int)hillFlag] * 64,
+	              cz * 64,
+	              (int16_t)(-a));
+	/* init_game_state also mirrors the start tile into GAMESTATE. */
+	state.game_startcol  = startcol2;
+	state.game_startcol2 = startcol2;
+	state.game_startrow  = startrow2;
+	state.game_startrow2 = startrow2;
+
+	/* The opponent is placed by the same code with 0x300 in place of the
+	 * player's 0x100 - i.e. 36 units to the OTHER side of the tile centre,
+	 * which is what puts the two cars side by side on the grid
+	 * (restunts.c init_game_state, "Init opponent car"). */
+	if (gameconfig.game_opponenttype != 0) {
+		int32_t ocol = multiply_and_scale(sin_fast((uint16_t)(a + 0x200)), 210)
+		             + multiply_and_scale(sin_fast((uint16_t)(a + 0x300)), 36);
+		int32_t orow = multiply_and_scale(cos_fast((uint16_t)(a + 0x200)), 210)
+		             + multiply_and_scale(cos_fast((uint16_t)(a + 0x300)), 36);
+		init_carstate(&state.opponentstate, &simd_opponent, 1,
+		              (((int32_t)startcol2 * 1024 + 512) + ocol) * 64,
+		              (int32_t)hillHeightConsts[(int)hillFlag] * 64,
+		              (((int32_t)(29 - startrow2) * 1024 + 512) + orow) * 64,
+		              (int16_t)(-a));
+		sub_18D60(((int16_t*)trackdata3)[state.opponentstate.car_trackdata3_index],
+		          &state.opponentstate.car_vec_unk3,
+		          (int16_t)(uint8_t)state.opponentstate.field_CE,
+		          (int16_t*)&state.field_3F9);
+		state.opponentstate.field_CE++;
+	}
+}
+
+/* ------------------------------------------------------------------ */
+/* The replay bar's Load Replay and Save Replay (seg005 loc_2450A and   */
+/* loc_24630).                                                          */
+/*                                                                      */
+/* The control flow is in rreplaybar.c, ported from the listing; this is */
+/* the host half it asks for through the hooks rreplaybar.h documents -  */
+/* the two file dialogs, the file layer and the two routines that build  */
+/* a race again for a recording driven in another car.                   */
+/*                                                                      */
+/* THE FILE FORMAT. A .RPL is 26 bytes of GAMEINFO, then 1802 bytes of   */
+/* track - the two 901-byte maps, i.e. a whole .TRK - then one input     */
+/* byte per recorded frame. The original never spells that out: it reads */
+/* the file in one go into td13_rpl_header and writes                     */
+/*                                                                       */
+/*     mov ax, gameconfig.game_recordedframes                            */
+/*     add ax, 724h        ; offset of .rpl kb. event block               */
+/*                                                                       */
+/* bytes back out (seg005:1992), and trakdata lays td13 (0x1A) ->        */
+/* td14_elem_map_main (0x385) -> td15_terr_map_main (0x385) ->            */
+/* td16_rpl_buffer out with no gaps (sfdata.c:210). 0x1A + 0x385 + 0x385 */
+/* is exactly 0x724, so the single read lands the header in gameconfig,   */
+/* the recording's own track in the two maps and its inputs in the replay */
+/* buffer. Checked against the shipped DEFAULT.RPL: its bytes 26..1827    */
+/* are HELL5.TRK, byte for byte, and 26 + 1802 + 10646 recorded frames is */
+/* its 12474-byte length.                                                 */
+/*                                                                       */
+/* [DEVIATION] restunts' own fileio.c writes sizeof(GAMEINFO) +           */
+/* game_recordedframes, i.e. no track at all; that is a decompilation     */
+/* slip, and the port had copied it. Recordings this port wrote before    */
+/* today are in that shorter form and are still read, by length.          */
+/* ------------------------------------------------------------------ */
+static SDL_Window* rb_win;
+static const stunts_palette_t* rb_pal;
+static void far*   rb_font;
+/* set when a recording has just been read in through the bar, so the host
+ * loop can pick up its length; see the [DEVIATION] where it is read. */
+static int rb_reloaded;
+
+/* One token at a time out of a comma-separated environment variable, so a
+ * run through the bar can be scripted without a mouse - the same idea as
+ * STUNTS_ENDSCREEN_KEYS. Returns NULL once the list is used up. */
+static const char* rb_script_pop(const char* var)
+{
+	static const char* names[4];
+	static char bufs[4][256];
+	static char* pos[4];
+	static int used;
+	int i;
+	char *tok, *p;
+	for (i = 0; i < used; i++) if (!strcmp(names[i], var)) break;
+	if (i == used) {
+		const char* e = getenv(var);
+		if (!e || used == 4) return NULL;
+		names[used] = var;
+		snprintf(bufs[used], sizeof bufs[used], "%s", e);
+		pos[used] = bufs[used];
+		used++;
+	}
+	p = pos[i];
+	if (!p || !*p) return NULL;
+	tok = p;
+	while (*p && *p != ',') p++;
+	if (*p) { *p = 0; p++; }
+	pos[i] = p;
+	return tok;
+}
+
+/* STUNTS_REPLAYBAR_KEYS="esc,-,-" pushes one key per frame as a real SDL
+ * event, so the strip and its pause menu can be driven without a mouse -
+ * the same trick STUNTS_ENDSCREEN_KEYS plays on the results screen. "-" is
+ * one frame of nothing and "q" is SDL_QUIT. */
+static void rb_key_pump(void)
+{
+	static int trace = -1;
+	const char* tok;
+	SDL_Event e;
+	/* One key at a time: the strip's own loop reads at most one code per
+	 * pass, and this is called from two places at two different rates, so
+	 * without the guard a queued key can be overtaken by the next one. */
+	if (SDL_HasEvent(SDL_KEYDOWN)) return;
+	tok = rb_script_pop("STUNTS_REPLAYBAR_KEYS");
+	if (trace < 0) trace = getenv("STUNTS_REPLAYBAR_TRACE") ? 1 : 0;
+	if (trace)
+		fprintf(stderr, "list: knapp %s\n", tok ? tok : "(slut)");
+	if (!tok || !strcmp(tok, "-")) return;
+	memset(&e, 0, sizeof e);
+	if (!strcmp(tok, "q")) { e.type = SDL_QUIT; SDL_PushEvent(&e); return; }
+	e.type = SDL_KEYDOWN;
+	e.key.state = SDL_PRESSED;
+	e.key.keysym.sym = !strcmp(tok, "esc")   ? SDLK_ESCAPE
+	                 : !strcmp(tok, "enter") ? SDLK_RETURN
+	                 : !strcmp(tok, "space") ? SDLK_SPACE
+	                 : !strcmp(tok, "up")    ? SDLK_UP
+	                 : !strcmp(tok, "down")  ? SDLK_DOWN
+	                 : !strcmp(tok, "left")  ? SDLK_LEFT
+	                 : !strcmp(tok, "right") ? SDLK_RIGHT
+	                 : (SDL_Keycode)(unsigned char)tok[0];
+	e.key.keysym.scancode = SDL_GetScancodeFromKey(e.key.keysym.sym);
+	SDL_PushEvent(&e);
+}
+
+/* seg008 show_dialog's modal loop, the half a DOS program gets from its
+ * mouse driver. rdialog.c is the other half: the template parser, the
+ * layout, the drawing and the key handling, all ported. */
+static int16_t rb_run_dialog(const char* text, int16_t mode,
+                             const int16_t* enable)
+{
+	struct RDIALOG d;
+	int open;
+	if (!rb_present_ren || !rb_present_tex) return -1;
+	rs_rgba = frame_rgba;
+	font_set_fontdef2(rb_font ? rb_font : fontdefptr);
+	if (!rdialog_open(&d, mode, 1, text, -1, -1, (int16_t)dialog_fnt_colour,
+	                  enable, 0))
+		return -1;
+	{   /* one-shot render, so the menu can be looked at without a mouse -
+	     * the same hook every other screen in this file has. Answers the
+	     * way Escape does, so the bar carries on. */
+		const char* shot = getenv("STUNTS_REPLAYMENU_SHOT");
+		if (shot) {
+			rdialog_draw(&d);
+			write_bmp(shot, rb_pal);
+			printf("ritade dialogen \"%s\": %d knappar, ruta (%d,%d)-(%d,%d)\n",
+			       text, (int)d.var_140, (int)d.var_30, (int)d.var_2C,
+			       (int)d.var_2E, (int)d.var_2A);
+			rs_rgba = NULL;
+			return -1;
+		}
+	}
+	open = 1;
+	while (open) {
+		SDL_Event ev;
+		rdialog_draw(&d);
+		replaybar_present();
+		while (SDL_PollEvent(&ev)) {
+			int16_t key = 0;
+			if (ev.type == SDL_QUIT) {
+				SDL_Event q = ev;
+				SDL_PushEvent(&q);        /* the host's loop wants it too */
+				d.result = -1;
+				open = 0;
+				break;
+			}
+			if (ev.type == SDL_MOUSEMOTION ||
+			    ev.type == SDL_MOUSEBUTTONDOWN) {
+				int16_t mx, my;
+				menu_point(rb_win,
+				           ev.type == SDL_MOUSEMOTION ? ev.motion.x
+				                                      : ev.button.x,
+				           ev.type == SDL_MOUSEMOTION ? ev.motion.y
+				                                      : ev.button.y,
+				           &mx, &my);
+				open = rdialog_mouse(&d, mx, my,
+				                     ev.type == SDL_MOUSEBUTTONDOWN);
+				if (!open) break;
+				continue;
+			}
+			if (ev.type != SDL_KEYDOWN) continue;
+			switch (ev.key.keysym.sym) {
+			case SDLK_ESCAPE:   key = 0x1B;   break;
+			case SDLK_RETURN:
+			case SDLK_KP_ENTER: key = 0x0D;   break;
+			case SDLK_SPACE:    key = 0x20;   break;
+			case SDLK_UP:       key = 0x4800; break;
+			case SDLK_DOWN:     key = 0x5000; break;
+			case SDLK_LEFT:     key = 0x4B00; break;
+			case SDLK_RIGHT:    key = 0x4D00; break;
+			default:
+				if (ev.key.keysym.sym > 0 && ev.key.keysym.sym < 0x80)
+					key = (int16_t)ev.key.keysym.sym;
+				break;
+			}
+			if (key == 0) continue;
+			open = rdialog_key(&d, key);
+			if (!open) break;
+		}
+		SDL_Delay(10);
+	}
+	rs_rgba = NULL;
+	return d.result;
+}
+
+/* The five show_dialog sites loop_game has. "men", "mdo" and "con" are
+ * looked up in GAME.RES and "fex" and "ser" in MAIN.RES, which is the
+ * original's own split (seg005 pushes gameresptr for the first three and
+ * mainresptr for the other two). */
+static int16_t rb_dialog_hook(const struct replaybar_dialog* d)
+{
+	extern void far* gameresptr;
+	const char* text;
+	const char* scripted;
+	int16_t enable[16];
+	int i;
+
+	/* STUNTS_REPLAYBAR_DIALOG="5,1" answers one dialog per entry, in the
+	 * order they come up, so the whole menu can be driven headlessly. */
+	scripted = rb_script_pop("STUNTS_REPLAYBAR_DIALOG");
+	if (scripted) {
+		int v = atoi(scripted);
+		printf("dialog \"%s\" besvarad med %d (skript)\n", d->resid, v);
+		return (int16_t)v;
+	}
+
+	text = res_text(gameresptr, d->resid);
+	if (!*text) text = res_text(mainresptr, d->resid);
+	if (!*text) return -1;                    /* as a cancelled dialog */
+
+	/* [ODDITY] seg008:27E4C and :27DA4 both skip a button whose arg_E word
+	 * is NON-zero, so the original's array - and rreplaybar.h's `disabled`
+	 * - reads "1 means greyed out". rdialog.c has that test the other way
+	 * round in all four places, so what it wants is an ENABLE array. The
+	 * inversion happens here rather than being papered over: fix rdialog.c
+	 * and this line is what has to change with it. */
+	if (d->disabled && d->nitems > 0 && d->nitems <= 16) {
+		for (i = 0; i < d->nitems; i++)
+			enable[i] = d->disabled[i] ? 0 : 1;
+		return rb_run_dialog(text, d->kind, enable);
+	}
+	return rb_run_dialog(text, d->kind, NULL);
+}
+
+/* do_fileselect_dialog (seg008 1207..1984), for ".rpl" instead of ".trk" -
+ * which is what the original passes too (seg005:24518). */
+static int16_t rb_ask_loadname(char* name, int16_t nmax)
+{
+	const char* scripted = rb_script_pop("STUNTS_REPLAYBAR_LOADNAME");
+	if (scripted) {
+		snprintf(name, (size_t)nmax, "%s", scripted);
+		printf("valde inspelning %s (skript)\n", name);
+		return 1;
+	}
+	if (!rb_win || !rb_present_ren) return 0;
+	return run_file_dialog(rb_win, rb_present_ren, rb_present_tex, rb_pal,
+	                       rfileio_get_data_dir(), rb_font, ".RPL",
+	                       name, (size_t)nmax) ? 1 : 0;
+}
+
+/* do_savefile_dialog (seg008 2043..2191). Its template is MAIN.RES's "sav",
+ * "Save @]Path:]@                 ]Name:]@]" - a title, the directory and one
+ * typed field, which is what this draws. [DEVIATION] show_dialog mode 3 and
+ * call_read_line do the typing in the original; SDL_TEXTINPUT does it here,
+ * exactly as the high-score name entry above already does. */
+static int16_t rb_ask_savename(char* name, int16_t nmax)
+{
+	char typed[16] = {0};
+	int len = 0;
+	bool typing = true, ok = false;
+	char seg[12][40];
+	int nseg = 0;
+	const char* tpl;
+
+	{
+		const char* scripted = rb_script_pop("STUNTS_REPLAYBAR_SAVENAME");
+		if (scripted) {
+			snprintf(name, (size_t)nmax, "%s", scripted);
+			printf("sparar som %s (skript)\n", name);
+			return 1;
+		}
+	}
+	if (!rb_present_ren || !rb_present_tex) return 0;
+
+	tpl = res_text(mainresptr, "sav");
+	if (*tpl) nseg = dlg_split(tpl, seg, 12);
+	{   /* '@' marks where a field goes; it is not part of the label */
+		int k, j;
+		for (k = 0; k < nseg; k++) {
+			for (j = 0; seg[k][j]; j++)
+				if (seg[k][j] == '@') { seg[k][j] = 0; break; }
+			while (j > 0 && seg[k][j - 1] == ' ') seg[k][--j] = 0;
+		}
+	}
+	if (nseg < 4) {
+		strcpy(seg[0], "Save"); strcpy(seg[1], "Path:");
+		strcpy(seg[2], "");     strcpy(seg[3], "Name:");
+		nseg = 4;
+	}
+
+	rs_rgba = frame_rgba;
+	font_set_fontdef2(rb_font ? rb_font : fontdefptr);
+	SDL_StartTextInput();
+	while (typing) {
+		SDL_Event ev;
+		while (SDL_PollEvent(&ev)) {
+			if (ev.type == SDL_QUIT) {
+				SDL_Event q = ev; SDL_PushEvent(&q);
+				typing = false;
+			} else if (ev.type == SDL_TEXTINPUT && len < 8) {
+				char c = ev.text.text[0];
+				if (c > 0x20 && c != '/' && c != '\\' && c != '.') {
+					typed[len++] = (char)toupper((unsigned char)c);
+					typed[len] = 0;
+				}
+			} else if (ev.type == SDL_KEYDOWN) {
+				if (ev.key.keysym.sym == SDLK_BACKSPACE && len)
+					typed[--len] = 0;
+				else if (ev.key.keysym.sym == SDLK_RETURN ||
+				         ev.key.keysym.sym == SDLK_KP_ENTER) {
+					ok = len > 0; typing = false;
+				} else if (ev.key.keysym.sym == SDLK_ESCAPE) typing = false;
+			}
+		}
+		menu_fill(58, 60, 262, 140, 0);        /* the box */
+		menu_fill(59, 61, 261, 139, 8);        /* a one-pixel frame */
+		menu_fill(60, 62, 260, 138, 0);
+		font_set_colour((uint16_t)dialog_fnt_colour, 0);
+		font_draw_text(seg[0], 64, 66);                     /* "Save"  */
+		font_draw_text(seg[1], 64, 82);                     /* "Path:" */
+		{
+			const char* dir = rfileio_get_data_dir();
+			const char* leaf = strrchr(dir, '/');
+			font_draw_text((char*)(leaf ? leaf + 1 : dir), 110, 82);
+		}
+		font_draw_text(seg[3], 64, 102);                    /* "Name:" */
+		{
+			char line[32];
+			snprintf(line, sizeof line, "%s_", typed);
+			font_draw_text(line, 110, 102);
+		}
+		font_draw_text("Enter=spara Esc=avbryt", 64, 122);
+		{   /* one-shot render, as everywhere else in this file */
+			const char* shot = getenv("STUNTS_REPLAYSAVE_SHOT");
+			if (shot) {
+				write_bmp(shot, rb_pal);
+				SDL_StopTextInput();
+				rs_rgba = NULL;
+				return 0;
+			}
+		}
+		replaybar_present();
+		SDL_Delay(16);
+	}
+	SDL_StopTextInput();
+	rs_rgba = NULL;
+	if (!ok) return 0;
+	snprintf(name, (size_t)nmax, "%s", typed);
+	return 1;
+}
+
+/* file_build_path + file_find (seg005:2687) - the "is there one already?"
+ * that the "fex" warning hangs on. */
+static int16_t rb_replay_exists(const char* name)
+{
+	char p[700];
+	FILE* f;
+	snprintf(p, sizeof p, "%s/%s.RPL", rfileio_get_data_dir(), name);
+	f = fopen(p, "rb");
+	if (!f) return 0;
+	fclose(f);
+	return 1;
+}
+
+/* ported_file_load_replay_ (seg005:1925). One read into td13_rpl_header;
+ * see THE FILE FORMAT above. Returns the original's sense: 0 read it. */
+static int16_t rb_load_replay(const char* name)
+{
+	char p[700];
+	FILE* f;
+	long len;
+	size_t n;
+	uint16_t frames;
+	snprintf(p, sizeof p, "%s/%s.RPL", rfileio_get_data_dir(), name);
+	f = fopen(p, "rb");
+	if (!f) { printf("kan inte oppna %s\n", p); return 1; }
+	fseek(f, 0, SEEK_END); len = ftell(f); fseek(f, 0, SEEK_SET);
+	if (len < (long)sizeof(struct GAMEINFO)) { fclose(f); return 1; }
+
+	/* The header first, so the length in it can say which of the two
+	 * layouts this file has before anything is written over the maps. */
+	if (fread(td13_rpl_header, 1, sizeof(struct GAMEINFO), f)
+	    != sizeof(struct GAMEINFO)) { fclose(f); return 1; }
+	memcpy(&gameconfig, td13_rpl_header, sizeof(struct GAMEINFO));
+	frames = gameconfig.game_recordedframes;
+	if (frames > RPL_MAX) frames = RPL_MAX;
+
+	if (len == (long)(RPL_DATA_OFS + gameconfig.game_recordedframes)) {
+		/* The game's own layout: track then inputs, contiguous, which is
+		 * exactly what one read into td14 lands in the right places. */
+		n = fread(td14_elem_map_main, 1,
+		          (size_t)(RPL_DATA_OFS - sizeof(struct GAMEINFO)) + frames, f);
+		fclose(f);
+		if (n < (size_t)(RPL_DATA_OFS - sizeof(struct GAMEINFO))) return 1;
+		n -= (size_t)(RPL_DATA_OFS - sizeof(struct GAMEINFO));
+		if (n < frames) gameconfig.game_recordedframes = (uint16_t)n;
+	} else {
+		/* [DEVIATION] a recording this port wrote before the format was
+		 * understood: header + inputs, no track. Its inputs must not go
+		 * anywhere near the maps, and the track already loaded is left
+		 * alone - which is right, since such a file cannot carry one. */
+		printf("varning: %s ar utan bana (%ld byte), laser bara styrningen\n",
+		       p, len);
+		n = fread(td16_rpl_buffer, 1, frames, f);
+		fclose(f);
+		if (n < frames) gameconfig.game_recordedframes = (uint16_t)n;
+	}
+	rb_reloaded = 1;
+	printf("laste inspelning %s: bana %.8s, bil %.4s, %u rutor\n", p,
+	       gameconfig.game_trackname, gameconfig.game_playercarid,
+	       gameconfig.game_recordedframes);
+	return 0;
+}
+
+/* ported_file_write_replay_ (seg005:1967): gameconfig into td13, then
+ * game_recordedframes + 724h bytes straight out of trakdata. Returns the
+ * original's sense: 0 wrote it, non-zero puts up "ser". */
+static int16_t rb_save_replay(const char* name)
+{
+	char p[700];
+	FILE* f;
+	size_t want = (size_t)RPL_DATA_OFS + gameconfig.game_recordedframes;
+	size_t n;
+	memcpy(td13_rpl_header, &gameconfig, sizeof(struct GAMEINFO));
+	snprintf(p, sizeof p, "%s/%s.RPL", rfileio_get_data_dir(), name);
+	f = fopen(p, "wb");
+	if (!f) { printf("kan inte skriva %s\n", p); return 1; }
+	n = fwrite(td13_rpl_header, 1, want, f);
+	fclose(f);
+	if (n != want) { printf("kort skrivning till %s\n", p); return 1; }
+	printf("sparade inspelning %s (%u rutor, %zu byte)\n", p,
+	       gameconfig.game_recordedframes, want);
+	return 0;
+}
+
+/* seg005 loc_2460D: ported_free_player_cars_ + ported_setup_player_cars_,
+ * which between them reload the two cars' data and shapes, the cockpit and
+ * the horizon. shape3d_load_all() is in there too and is not repeated here:
+ * nothing it loads depends on the track or the car. */
+static void rb_rebuild_cars(void)
+{
+	printf("bygger om bilarna for %.4s / %.4s\n",
+	       gameconfig.game_playercarid,
+	       gameconfig.game_opponenttype ? gameconfig.game_opponentcarid
+	                                    : "-");
+	if (!setup_player_cars()) return;
+	load_car_shapes();
+	load_skybox((char)td14_elem_map_main[0x384]);
+}
+
+/* [DEVIATION] the placing half of init_game_state; see rreplaybar.h. */
+static void rb_place_cars(void) { place_cars_at_start(); }
+
+static void replaybar_install_hooks(SDL_Window* win, SDL_Renderer* ren,
+                                    SDL_Texture* tex,
+                                    const stunts_palette_t* pal,
+                                    void far* dlgfont)
+{
+	rb_win = win;
+	rb_present_ren = ren;
+	rb_present_tex = tex;
+	rb_pal = pal;
+	rb_font = dlgfont;
+	replaybar_hook_present       = replaybar_present;
+	replaybar_hook_dialog        = rb_dialog_hook;
+	replaybar_hook_ask_loadname  = rb_ask_loadname;
+	replaybar_hook_ask_savename  = rb_ask_savename;
+	replaybar_hook_replay_exists = rb_replay_exists;
+	replaybar_hook_load_replay   = rb_load_replay;
+	replaybar_hook_save_replay   = rb_save_replay;
+	replaybar_hook_rebuild_cars  = rb_rebuild_cars;
+	replaybar_hook_place_cars    = rb_place_cars;
+}
+
 static bool game_init(const char* data_dir, const char* track, const char* car)
 {
 	rfileio_set_data_dir(data_dir);
@@ -1875,21 +2498,6 @@ static bool game_init(const char* data_dir, const char* track, const char* car)
 		}
 	}
 
-	{
-		char p[600];
-		snprintf(p, sizeof(p), "%s/CAR%.4s.RES", data_dir, car);
-		stunts_res_archive_t* a = stunts_asset_load_archive(p);
-		if (!a) { fprintf(stderr, "kan inte ladda bilen %s\n", p); return false; }
-		const stunts_sub_resource_t* sd = stunts_asset_find_resource(a, "simd");
-		if (!sd) { fprintf(stderr, "bilfilen saknar simd-block\n"); return false; }
-		size_t k = sd->size < sizeof(struct SIMD) ? sd->size : sizeof(struct SIMD);
-		memcpy(&simd_player, sd->data, k);
-		/* setup_aero_trackdata: aerorestable is a pointer into trakdata */
-		for (int i = 0; i < 0x40; i++)
-			s_aero[i] = (int16_t)(((int32_t)simd_player.aero_resistance * i * i) >> 9);
-		simd_player.aerorestable = s_aero;
-	}
-
 	memcpy(gameconfig.game_playercarid, car, 4);
 	/* The track name is what file_build_path turns into "<track>.HIG" and
 	 * what a .RPL header carries; it had never been filled in. */
@@ -1908,28 +2516,7 @@ static bool game_init(const char* data_dir, const char* track, const char* car)
 	gameconfig.game_opponenttransmission = 1;
 	framespersec = 20;
 
-	/* restunts.c setup_player_cars(): the opponent gets the same treatment
-	 * as the player - its own SIMD, its own aero table - and only then is
-	 * load_opponent_data() allowed to run, because that routine needs
-	 * track_setup()'s td01/td02/td17 tables, which are already built above. */
-	if (gameconfig.game_opponenttype != 0) {
-		char p[600];
-		snprintf(p, sizeof(p), "%s/CAR%.4s.RES", data_dir, opt_opponent_car);
-		stunts_res_archive_t* a = stunts_asset_load_archive(p);
-		if (!a) { fprintf(stderr, "kan inte ladda motstandarbilen %s\n", p); return false; }
-		const stunts_sub_resource_t* sd = stunts_asset_find_resource(a, "simd");
-		if (!sd) { fprintf(stderr, "motstandarbilen saknar simd-block\n"); return false; }
-		size_t k = sd->size < sizeof(struct SIMD) ? sd->size : sizeof(struct SIMD);
-		memcpy(&simd_opponent, sd->data, k);
-		for (int i = 0; i < 0x40; i++)
-			s_aero_opp[i] = (int16_t)(((int32_t)simd_opponent.aero_resistance * i * i) >> 9);
-		simd_opponent.aerorestable = s_aero_opp;
-
-		load_opponent_data();
-		printf("motstandare %d (%s), bil %.4s, korlinje %d rutor, kostnad %ld\n",
-		       opt_opponent, g_opponent_initials, opt_opponent_car,
-		       sfopp_path_len, (long)sfopp_path_cost);
-	}
+	if (!setup_player_cars()) return false;
 
 	/* The clock's font. restunts.c:785 loads it the same way; without it
 	 * font_draw_text has nothing to draw and the timer stays invisible. */
@@ -1970,16 +2557,7 @@ static bool game_init(const char* data_dir, const char* track, const char* car)
 
 	init_polyinfo();
 	if (shape3d_load_all() != 0) { fprintf(stderr, "kan inte ladda 3D-former\n"); return false; }
-	{
-		char carid[5] = {0}, oppid[5] = { (char)0xFF, 0, 0, 0, 0 };
-		memcpy(carid, car, 4);
-		if (gameconfig.game_opponenttype != 0) memcpy(oppid, opt_opponent_car, 4);
-		shape3d_load_car_shapes(carid, oppid);
-	}
-
-	/* Load the cockpit bitmaps; this is what fills in roofbmpheight and
-	 * dashbmp_y, which in turn decide how tall the windshield is. */
-	setup_car_shapes(0);
+	load_car_shapes();
 
 	/* restunts.c:1031, set_projection(0x23, dashbmp_y_copy / 6, 0x140,
 	 * dashbmp_y_copy). The first two arguments are the horizontal and
@@ -2002,50 +2580,7 @@ static bool game_init(const char* data_dir, const char* track, const char* car)
 	if (!cvxptr) cvxptr = calloc(20, sizeof(struct GAMESTATE));
 	init_game_state_vars();
 
-	/* Start placement: tile centre + (210 back, 36 lateral), per restunts.c
-	 * init_game_state. Identical to the code verified against the oracle in
-	 * tools/dump_native_states.c; track_angle and hillFlag now come from
-	 * track_setup() instead of being assumed zero. */
-	{
-		int16_t a = track_angle;
-		int32_t tmpcol = multiply_and_scale(sin_fast((uint16_t)(a + 0x200)), 210)
-		               + multiply_and_scale(sin_fast((uint16_t)(a + 0x100)), 36);
-		int32_t tmprow = multiply_and_scale(cos_fast((uint16_t)(a + 0x200)), 210)
-		               + multiply_and_scale(cos_fast((uint16_t)(a + 0x100)), 36);
-		int32_t cx = ((int32_t)startcol2 * 1024 + 512) + tmpcol;
-		int32_t cz = ((int32_t)(29 - startrow2) * 1024 + 512) + tmprow;
-		init_carstate(&state.playerstate, &simd_player, 1,
-		              cx * 64,
-		              (int32_t)hillHeightConsts[(int)hillFlag] * 64,
-		              cz * 64,
-		              (int16_t)(-a));
-		/* init_game_state also mirrors the start tile into GAMESTATE. */
-		state.game_startcol  = startcol2;
-		state.game_startcol2 = startcol2;
-		state.game_startrow  = startrow2;
-		state.game_startrow2 = startrow2;
-
-		/* The opponent is placed by the same code with 0x300 in place of
-		 * the player's 0x100 - i.e. 36 units to the OTHER side of the
-		 * tile centre, which is what puts the two cars side by side on
-		 * the grid (restunts.c init_game_state, "Init opponent car"). */
-		if (gameconfig.game_opponenttype != 0) {
-			int32_t ocol = multiply_and_scale(sin_fast((uint16_t)(a + 0x200)), 210)
-			             + multiply_and_scale(sin_fast((uint16_t)(a + 0x300)), 36);
-			int32_t orow = multiply_and_scale(cos_fast((uint16_t)(a + 0x200)), 210)
-			             + multiply_and_scale(cos_fast((uint16_t)(a + 0x300)), 36);
-			init_carstate(&state.opponentstate, &simd_opponent, 1,
-			              (((int32_t)startcol2 * 1024 + 512) + ocol) * 64,
-			              (int32_t)hillHeightConsts[(int)hillFlag] * 64,
-			              (((int32_t)(29 - startrow2) * 1024 + 512) + orow) * 64,
-			              (int16_t)(-a));
-			sub_18D60(((int16_t*)trackdata3)[state.opponentstate.car_trackdata3_index],
-			          &state.opponentstate.car_vec_unk3,
-			          (int16_t)(uint8_t)state.opponentstate.field_CE,
-			          (int16_t*)&state.field_3F9);
-			state.opponentstate.field_CE++;
-		}
-	}
+	place_cars_at_start();
 	/* 0 means "not driving yet", which is what puts "Fasten your Seatbelt!"
 	 * on the screen; the first input flips it to 1. Headless runs start at
 	 * 1 so every physics baseline in tests/ stays exactly as recorded. */
@@ -2151,7 +2686,7 @@ int main(int argc, char** argv)
 	stunts_game_info_t replay_info;
 	char replay_track[16], replay_car[8];
 	if (replay_path) {
-		if (!stunts_load_replay(replay_path, &replay_info, &replay_inputs, &replay_len)) {
+		if (!load_replay_file(replay_path, &replay_info, &replay_inputs, &replay_len)) {
 			fprintf(stderr, "kan inte ladda inspelningen %s\n", replay_path);
 			return 1;
 		}
@@ -2359,8 +2894,8 @@ int main(int argc, char** argv)
 	/* run_option_menu's "Load replay" can hand back a recording after the
 	 * command line has already been parsed, so the load happens here. */
 	if (replay_path && !replay_inputs) {
-		if (!stunts_load_replay(replay_path, &replay_info,
-		                        &replay_inputs, &replay_len)) {
+		if (!load_replay_file(replay_path, &replay_info,
+		                      &replay_inputs, &replay_len)) {
 			fprintf(stderr, "kan inte ladda inspelningen %s\n", replay_path);
 			replay_path = NULL;
 		} else {
@@ -2739,9 +3274,7 @@ int main(int argc, char** argv)
 			(uint16_t)(replay_len < RPL_MAX ? replay_len : RPL_MAX);
 		elapsed_time1 = 0;
 		elapsed_time2 = state.game_frame;
-		rb_present_ren = ren;
-		rb_present_tex = tex;
-		replaybar_hook_present = replaybar_present;
+		replaybar_install_hooks(win, ren, tex, &pal, dlgfont);
 		/* the 3D view has just shrunk to rows 0..0x96; set_projection
 		 * and the windshield rectangle both have to follow it */
 		apply_view(&windshield);
@@ -2754,8 +3287,31 @@ int main(int argc, char** argv)
 
 	while (!quit) {
 		SDL_Event ev;
+		/* [DEVIATION] While the strip is up, loop_game owns the keyboard:
+		 * it is the original's own input handler for the replay screen and
+		 * every key this loop knows has a control on the strip - Escape
+		 * raises the pause menu (loc_24346), 'c' is the camera button,
+		 * Stop is the pause and the two scrub buttons are the rewind. So
+		 * the keys are set aside here and put back once the queue has been
+		 * drained, rather than acted on: Escape would otherwise quit the
+		 * race instead of opening the menu. SDL_QUIT still ends the run.
+		 *
+		 * They are put back AFTER the drain, not as they arrive. SDL 2.0.18
+		 * ends each pump with a POLL SENTINEL and SDL_PollEvent answers 0
+		 * when it reaches one; leaving the loop early - which pushing a
+		 * fresh event and breaking would do - leaves that sentinel in place
+		 * and the NEXT call answers "nothing queued" whatever is really
+		 * there. Measured: with the early break, the quit event that
+		 * followed a keypress went unseen for the rest of the run.
+		 * rreplaybar.c's input_checking has the same note. */
+		SDL_Event held[16];
+		int nheld = 0, hi;
+		if (game_replay_mode == 2) rb_key_pump();
 		while (SDL_PollEvent(&ev)) {
 			if (ev.type == SDL_QUIT) quit = true;
+			else if (ev.type == SDL_KEYDOWN && game_replay_mode == 2) {
+				if (nheld < 16) held[nheld++] = ev;
+			}
 			else if (ev.type == SDL_KEYDOWN) {
 				switch (ev.key.keysym.sym) {
 					case SDLK_ESCAPE: quit = true; break;
@@ -2781,6 +3337,7 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+		for (hi = 0; hi < nheld; hi++) SDL_PushEvent(&held[hi]);
 
 		/* Original replay input bitfield: bit0 accel, bit1 brake,
 		 * bits2-3 steer (01 right, 10 left), bit4 down, bit5 up. */
@@ -2861,6 +3418,29 @@ int main(int argc, char** argv)
 			rs_rgba = frame_rgba;
 			loop_game(3, 0, 0);
 			rs_rgba = NULL;
+			/* seg005 loc_221C2: byte_449DA == 2 is how the pause menu's
+			 * "Return to Evaluation" and "Main Menu" (loc_24748 and
+			 * loc_24760) tell the race loop to stop. */
+			if (byte_449DA == 2) quit = true;
+		}
+		/* [DEVIATION] loc_2450A has just read another recording in, and
+		 * this loop keeps two things the original keeps in globals: how
+		 * many frames there are to play (the original reads
+		 * game_recordedframes, which the header has just refreshed) and
+		 * the buffer the inputs came from (they are already in
+		 * td16_rpl_buffer, where update_gamestate reads them, so the
+		 * pointer only has to stay non-NULL). loc_2458B also cleared
+		 * dashb_toggle, which changes how tall the 3D view is. */
+		if (rb_reloaded) {
+			rb_reloaded = 0;
+			replay_len = gameconfig.game_recordedframes;
+			if (!replay_inputs) replay_inputs = (uint8_t*)td16_rpl_buffer;
+			elapsed_time1 = 0;
+			elapsed_time2 = state.game_frame;
+			accum = 0;
+			apply_view(&windshield);
+			printf("spelar upp den inlasta inspelningen: %u rutor\n",
+			       replay_len);
 		}
 		/* --shots works here too, so the replay screen can be looked at
 		 * without a mouse (the headless loop below has had it since

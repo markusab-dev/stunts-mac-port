@@ -170,6 +170,20 @@ bool stunts_load_replay(const char* filepath, stunts_game_info_t* out_info, uint
     out_info->frames_per_sec = (uint16_t)header[22] | ((uint16_t)header[23] << 8);
     out_info->recorded_frames = (uint16_t)header[24] | ((uint16_t)header[25] << 8);
 
+    /* ported_file_write_replay_ (seg005:1992) writes recordedframes + 0x724
+     * bytes starting at td13_rpl_header, and trakdata runs td13 (0x1A) ->
+     * td14 (0x385) -> td15 (0x385) -> td16 with no gaps. So a .RPL is
+     * 26 bytes of GAMEINFO, then the whole 1802-byte track, then one input
+     * byte per frame - 0x724 = 1828 = 26 + 1802.
+     *
+     * restunts' own fileio.c decompilation says sizeof(GAMEINFO) +
+     * recordedframes, with no track, and this loader had copied that. The
+     * shipped DEFAULT.RPL settles it: it is 12474 bytes, its bytes 26..1827
+     * are HELL5.TRK byte for byte, and 26 + 1802 + 10646 = 12474. Reading
+     * inputs at offset 26 fed 1802 bytes of track map to the car as
+     * steering. */
+    if (fseek(f, 26 + 1802, SEEK_SET) != 0) { fclose(f); return false; }
+
     uint16_t frame_count = out_info->recorded_frames;
     uint8_t* inputs = (uint8_t*)malloc(frame_count + 1);
     if (!inputs) {
