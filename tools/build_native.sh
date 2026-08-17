@@ -30,6 +30,7 @@ clang -O2 -g ${ASAN:+-fsanitize=address -fno-omit-frame-pointer} \
   "${RF}"/rskybox.c "${RF}"/ringame_text.c "${RF}"/rcrash.c "${RF}"/rexplode.c "${RF}"/rasm_port.c "${RF}"/rdraw_dispatch.c "${RF}"/rframe_helpers.c "${RF}"/rshape2d.c "${RF}"/rtrackprev.c "${RF}"/rcarmenu.c "${RF}"/rreplaybar.c \
   "${RF}"/rfont.c "${RF}"/rhighscore.c "${RF}"/rwidgets.c "${RF}"/rendscreen.c "${RF}"/rdata.c "${RF}"/rblit.c "${RF}"/rfileio.c "${RF}"/rstubs.c \
   "${RF}"/rintro.c "${RF}"/rintro3d.c "${RF}"/rpes.c \
+  "${RF}"/rdialog.c "${RF}"/reditor.c "${RF}"/reditoricons.c "${RF}"/rtrackmap2d.c "${RF}"/rjoystick.c \
   src/asset/stunts_asset_loader.c src/asset/stunts_dsi_unpack.c \
   src/render/stunts_palette.c \
   src/main_native.c src/audio_native.c src/music_native.c src/music_opl_nuked.c src/vendored/opl/opl3.c \

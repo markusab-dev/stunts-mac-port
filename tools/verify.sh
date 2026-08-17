@@ -30,12 +30,27 @@ say()  { printf '\n\033[1m%s\033[0m\n' "$*"; }
 ok()   { printf '  \033[32mok\033[0m    %s\n' "$*"; }
 bad()  { printf '  \033[31mFEL\033[0m   %s\n' "$*"; FAIL=$((FAIL+1)); }
 
-pkill -9 -f stunts_native 2>/dev/null
-pkill -9 -f intro_shot    2>/dev/null
+# Clear leftovers from a previous run of THIS tree. `pkill -9 -f intro_shot`
+# used to be enough and is not: -f matches the whole command line, and every
+# checkout on the machine runs the binary as ./bin/intro_shot, so a verify.sh
+# in one worktree killed the binaries a verify.sh in another was in the middle
+# of using. That produced a red "intro: titelbild" with a SIGKILLed process and
+# nothing wrong with the code. Match on the process's working directory
+# instead, which is the one thing that does tell the trees apart.
+kill_ours() {
+	local p
+	for p in $(pgrep -f "bin/$1" 2>/dev/null); do
+		[ "$(lsof -a -p "$p" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" \
+		  = "$PWD" ] && kill -9 "$p" 2>/dev/null
+	done
+	return 0
+}
+kill_ours stunts_native
+kill_ours intro_shot
 
 # ------------------------------------------------------------------ #
 say "Bygger"
-for s in build_native.sh build_dumper.sh build_intro.sh; do
+for s in build_native.sh build_dumper.sh build_intro.sh build_replaybar_shot.sh; do
 	[ -f "tools/$s" ] || continue
 	if out=$(bash "tools/$s" 2>&1); then ok "$s"
 	else bad "$s"; echo "$out" | grep -i " error" | head -5; fi
@@ -155,6 +170,20 @@ shot "motstandarval"  STUNTS_OPP_SHOT
 shot "installningar"  STUNTS_OPTION_SHOT
 shot "rekordlista"    STUNTS_HISCORE_SHOT
 shot "resultatskarm"  STUNTS_ENDSCREEN_SHOT
+# Phase 11. Each of these four is a screen that arrived as its own port and is
+# now drawn by bin/stunts_native itself, which is the thing worth checking: the
+# sibling harnesses in tools/ prove the code, these prove the wiring.
+shot "inspelningslist" STUNTS_REPLAYBAR_SHOT
+shot "banredigerare"   STUNTS_EDITOR_SHOT
+shot "2D-karta"        STUNTS_MAP2D_SHOT
+shot "styrspakskal"    STUNTS_JOYCAL_SHOT
+# STUNTS_ICONS_SHOT writes a directory, not one file, so it cannot use shot().
+rm -rf "$TMP/ic"; mkdir -p "$TMP/ic"
+STUNTS_ICONS_SHOT="$TMP/ic" ./bin/stunts_native --data "$DATA" >/dev/null 2>&1
+n=$(ls "$TMP/ic" 2>/dev/null | wc -l | tr -d " ")
+# eleven pages plus the contact sheet
+[ "$n" = 12 ] && ok "ikonpalett 11 sidor + kontaktkarta" \
+              || bad "ikonpalett ($n filer, vantat 12)"
 # These two are not paths - they set a value in the car's state (the crash
 # bitmap flag, and the explosion's fixed-point scale), so they render through
 # --shots like an ordinary frame.
@@ -239,6 +268,21 @@ if [ -x bin/intro_shot ]; then
 	c=$(ls "$TMP/3d" 2>/dev/null | wc -l | tr -d ' ')
 	[ "$c" -gt 0 ] && ok "intro: 3D-animation ($c rutor)" || bad "intro: 3D-animation tom"
 fi
+fi
+
+# ------------------------------------------------------------------ #
+# Phase 11 brought three sub-bars of its own, each measuring pixels rather
+# than file existence. They build their own binaries.
+if [ "$WHICH" = allt ] || [ "$WHICH" = fas11 ]; then
+say "Fas 11: egna kontroller"
+if ./bin/replaybar_shot --smoke >"$TMP/rb.log" 2>&1
+	then ok "inspelningslistens 18 matningar"
+	else bad "replaybar_shot --smoke"; tail -5 "$TMP/rb.log"; fi
+for c in check_map2d.sh check_editor.sh; do
+	if bash "tools/$c" >"$TMP/$c.log" 2>&1
+		then ok "$c"
+		else bad "$c"; grep -a FEL "$TMP/$c.log" | head -5; fi
+done
 fi
 
 # ------------------------------------------------------------------ #

@@ -26,6 +26,15 @@
 #include "music_native.h"
 #include "render_faithful/rfbsize.h"
 #include "render_faithful/rintro.h"
+/* Phase 11. Four screens that arrived as separate ports and are driven from
+ * here: the in-race recording strip, the track editor and its icon palette,
+ * and the joystick. rdialog.c (seg008 show_dialog) is linked but not called
+ * yet - the editor's five dialogs are raised through reditor_activate(), and
+ * that loop is not built. */
+#include "render_faithful/rreplaybar.h"
+#include "render_faithful/reditor.h"
+#include "render_faithful/reditoricons.h"
+#include "render_faithful/rjoystick.h"
 #include "audio_native.h"
 
 /* --- simulation --- */
@@ -132,7 +141,23 @@ static int dash_visible(void)
 	return dashb_toggle && dashbmp_y && cameramode == 0 && !followOpponentFlag;
 }
 static int16_t view_top(void)    { return dash_visible() ? roofbmpheight : 0; }
-static int16_t view_bottom(void) { return dash_visible() ? dashbmp_y : 200; }
+/* seg005:498..520 is the original's own sizing rule, and replaybar_view_height()
+ * is that routine: while the recording strip is up it sets
+ * height_above_replaybar to 0x97 and the strip owns rows 0x97..0xC7, so the 3D
+ * view must stop there whatever the cockpit would otherwise ask for. Off the
+ * replay screen it answers 0xC8 and this is exactly what it was before. */
+static int16_t view_bottom(void)
+{
+	int16_t bottom = dash_visible() ? dashbmp_y : 200;
+	int16_t bar    = replaybar_view_height();
+	/* 0xC8 is that routine's "no strip" answer, and only a raised strip
+	 * may shorten the view - testing it explicitly rather than relying on
+	 * 0xC8 being an upper bound keeps this a provable no-op off the replay
+	 * screen, including rshape2d.c:828's dashbmp_y = RFB_VIEW_H fallback
+	 * when a car has no cockpit artwork at all. */
+	if (bar < 0xC8 && bar < bottom) bottom = bar;
+	return bottom;
+}
 
 /* restunts.c:1029 only redoes this when one of the inputs actually changed;
  * set_projection rebuilds tables the whole 3D pipeline reads. */
@@ -178,6 +203,29 @@ static void present(const stunts_palette_t* pal)
 	rs_rgba = frame_rgba;      /* the cockpit composites in truecolour */
 	draw_cockpit();
 	rs_rgba = NULL;
+}
+
+/* Phase 11. loop_game(3, ...) spins inside itself for as long as the strip is
+ * paused or a scrub button is held. The original draws straight into the page
+ * the CRT is scanning and so has nothing to push; this port has to put the
+ * frame on the screen from in there, or the window is a frozen rectangle for
+ * the whole of a pause. rreplaybar.h calls this replaybar_hook_present.
+ *
+ * It only uploads. It must NOT re-run present(): the strip is composited into
+ * frame_rgba over the cockpit, and present() rebuilds frame_rgba from the
+ * indexed framebuffer, which would wipe the strip the caller is in the middle
+ * of drawing. While the strip spins the world is stopped, so the 3D half of
+ * frame_rgba is already the right picture. */
+static SDL_Renderer* rb_present_ren;
+static SDL_Texture*  rb_present_tex;
+
+static void replaybar_present(void)
+{
+	if (!rb_present_ren || !rb_present_tex) return;
+	SDL_UpdateTexture(rb_present_tex, NULL, frame_rgba, VIEW_W * 4);
+	SDL_RenderClear(rb_present_ren);
+	SDL_RenderCopy(rb_present_ren, rb_present_tex, NULL, NULL);
+	SDL_RenderPresent(rb_present_ren);
 }
 /* One 24-bit BMP of the current presented frame, bottom-up as the format
  * wants. Built in memory and written in a single call - the earlier
@@ -1237,6 +1285,14 @@ static bool run_option_dialog(SDL_Window* win, SDL_Renderer* ren,
 	 * keystrokes deep otherwise. */
 	if (getenv("STUNTS_GRAPHICS_SHOT"))
 		run_graphics_dialog(win, ren, tex, pal, dlgfont);
+	/* the same for the joystick calibration screen, which is behind the
+	 * first button. rjoy_calibrate writes the BMP itself and returns
+	 * without waiting for a stick when STUNTS_JOYCAL_SHOT is set. */
+	if (getenv("STUNTS_JOYCAL_SHOT")) {
+		rjoy_calibrate(win, ren, tex, pal, dlgfont);
+		SDL_Quit();
+		exit(0);
+	}
 
 	rs_rgba = frame_rgba;
 	font_set_fontdef2(dlgfont);
@@ -1269,7 +1325,15 @@ static bool run_option_dialog(SDL_Window* win, SDL_Renderer* ren,
 			if (act < 0) continue;
 			/* off_1314A, seg000:5136 */
 			switch (act) {
-			case 0:  note = res_text(mainresptr, "key"); break;  /* input device */
+			/* off_1314A[0] is do_joy_restext, seg008 4708..4993 -
+			 * the nine-square calibration screen. It returns
+			 * byte_3FE00 bit 0 as it leaves it: the stick is the
+			 * driving input device, or it is not. */
+			case 0:
+				note = rjoy_calibrate(win, ren, tex, pal, dlgfont)
+				     ? res_text(mainresptr, "joy")
+				     : res_text(mainresptr, "key");
+				break;
 			case 1:  note = res_text(mainresptr, "mof"); break;  /* music */
 			case 2:  /* sound effects on/off - Phase 4 wires this up */
 				audio_native_set_enabled(!audio_native_enabled());
@@ -2179,6 +2243,12 @@ int main(int argc, char** argv)
 			fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
 			return 1;
 		}
+		/* Phase 11: the gameport. Opens its own SDL subsystem and is a
+		 * no-op with nothing attached, which is the normal case; the
+		 * stick still has to be selected in the option menu before
+		 * get_joy_flags answers anything (byte_3FE00 bit 0). */
+		if (rjoy_init())
+			printf("styrspak hittad\n");
 		win = SDL_CreateWindow("Stunts — Mac-port (originalmotor)",
 			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 			(VIEW_W / RFB_SCALE) * scale,
@@ -2227,11 +2297,19 @@ int main(int argc, char** argv)
 			         : getenv("STUNTS_OPP_SHOT")    ? 2
 			         : getenv("STUNTS_OPTION_SHOT") ? 4
 			         : getenv("STUNTS_GRAPHICS_SHOT") ? 4
+			         /* Phase 11: the joystick screen is behind the
+			          * option sign, the other three are drawn after
+			          * game_init and so want "Let's Drive". */
+			         : getenv("STUNTS_JOYCAL_SHOT") ? 4
 			         : (getenv("STUNTS_HISCORE_SHOT") ||
 			            getenv("STUNTS_HISCORE_TEST") ||
 			            getenv("STUNTS_RESULT_SHOT") ||
 			            getenv("STUNTS_ENDSCREEN_SHOT") ||
-			            getenv("STUNTS_ENDSCREEN_TIME")) ? 0
+			            getenv("STUNTS_ENDSCREEN_TIME") ||
+			            getenv("STUNTS_EDITOR_SHOT") ||
+			            getenv("STUNTS_ICONS_SHOT") ||
+			            getenv("STUNTS_MAP2D_SHOT") ||
+			            getenv("STUNTS_REPLAYBAR_SHOT")) ? 0
 			         : run_main_menu(win, ren, tex, &pal);
 			if (pick < 0) { SDL_Quit(); return 0; }
 			if (pick == 0) break;          /* Let's Drive */
@@ -2302,6 +2380,22 @@ int main(int argc, char** argv)
 	}
 
 	if (!game_init(data_dir, track, car)) return 1;
+
+	/* Phase 11 test hooks, one per new screen, in the same spirit as the
+	 * Phase 7 ones below: draw the screen once into the framebuffer, write
+	 * it out and leave, so each can be looked at without a mouse. All four
+	 * need game_init to have run - the editor and the 2D map read the track
+	 * that is loaded, the icon palette and the recording strip read
+	 * SDTEDIT.PES and SDGAME.PVS through the resource loader. */
+	if (getenv("STUNTS_MAP2D_SHOT")) {
+		/* seg009 draw_2DtrackMap. STUNTS_MAP2D_COL / _ROW scroll it. */
+		extern int trackmap2d_shot(const char* path);
+		return trackmap2d_shot(getenv("STUNTS_MAP2D_SHOT")) > 0 ? 0 : 1;
+	}
+	if (getenv("STUNTS_ICONS_SHOT"))       /* seg009 preRender_icons */
+		return editor_icons_shot(&pal) > 0 ? 0 : 1;
+	if (reditor_shot(pal.colors)) return 0;   /* seg009, the whole editor */
+	if (replaybar_shot(NULL)) return 0;       /* seg005 loop_game's strip */
 
 	/* Phase 7 test hook: draw_track_preview() renders the whole track from a
 	 * fixed camera. game_init has already loaded the maps, the shapes and the
@@ -2613,6 +2707,51 @@ int main(int argc, char** argv)
 	gameconfig.game_framespersec = framespersec;
 	if (!replay_inputs) gameconfig.game_recordedframes = 0;
 
+	/* Phase 11: the recording strip, seg005 loop_game. The original raises
+	 * it on the replay screen and nowhere else - replaybar_view_height()
+	 * asks for game_replay_mode == 2 - and watching a loaded recording is
+	 * this host's replay screen, so that is where it goes. The call
+	 * sequence is ported_run_game_'s own (seg005 74..889):
+	 *
+	 *   loop_game(0, 0, 0)   load the 23 shapes out of SDGAME.PVS and fall
+	 *                        through into mode 2 with arg_2 = 4
+	 *   loop_game(2, n, 0)   latch one transport button
+	 *   is_in_replay         the strip's PAUSED flag, not its running one:
+	 *                        loc_24C5A (play) clears it, loc_24C74 (stop)
+	 *                        sets it, and statecrs.c reads it that way too.
+	 *
+	 * ported_run_game_ has two entries into game_replay_mode 2 and they
+	 * differ in exactly that flag:
+	 *   loc_21BCA  the attract demo - loads a recording and watches it,
+	 *              is_in_replay left at 0 from :98, so it plays at once;
+	 *   loc_21C00  the results screen's "watch the recording you just
+	 *              drove" - is_in_replay = 1, so it opens paused.
+	 * --replay <file> is the command line asking to watch a recording now,
+	 * which is the first of those, so the Play button is the one latched
+	 * (loc_24C5A latches 3) and the strip's Stop button pauses it. The
+	 * results screen is not wired, so the second entry has no caller here.
+	 *
+	 * The strip needs the recording's length for its scrub trough; the
+	 * .RPL header field lands in replay_len, not in gameconfig. */
+	if (replay_inputs) {
+		game_replay_mode = 2;               /* seg005:498's third test */
+		gameconfig.game_recordedframes =
+			(uint16_t)(replay_len < RPL_MAX ? replay_len : RPL_MAX);
+		elapsed_time1 = 0;
+		elapsed_time2 = state.game_frame;
+		rb_present_ren = ren;
+		rb_present_tex = tex;
+		replaybar_hook_present = replaybar_present;
+		/* the 3D view has just shrunk to rows 0..0x96; set_projection
+		 * and the windshield rectangle both have to follow it */
+		apply_view(&windshield);
+		loop_game(0, 0, 0);
+		loop_game(2, 3, 0);
+		is_in_replay = 0;
+		printf("inspelningslist: %u rutor, blaupptagning = spolningslage\n",
+		       gameconfig.game_recordedframes);
+	}
+
 	while (!quit) {
 		SDL_Event ev;
 		while (SDL_PollEvent(&ev)) {
@@ -2653,6 +2792,12 @@ int main(int argc, char** argv)
 		else if (k[SDL_SCANCODE_LEFT] || k[SDL_SCANCODE_A]) input |= 0x08;
 		if (k[SDL_SCANCODE_LSHIFT]) input |= 0x10;
 		if (k[SDL_SCANCODE_SPACE])  input |= 0x20;
+		/* Phase 11: the stick, ORed into the same byte before it is
+		 * recorded - seg005 1319..1352 reads it at exactly this point,
+		 * and the steering servo (replay_unk) needs the car's current
+		 * steering angle, which is this frame's. Untouched with no
+		 * device open or the stick not selected in the option menu. */
+		input = rjoy_or_input(input);
 		/* the flag drops on the first thing the driver does */
 		if (input != 0 && state.game_inputmode == 0) state.game_inputmode = 1;
 
@@ -2660,7 +2805,11 @@ int main(int argc, char** argv)
 		accum += now - last;
 		last = now;
 		if (accum > 250) accum = 250;
-		if (paused) accum = 0;   /* the world stops; the frame still draws */
+		/* The world stops; the frame still draws. On the replay screen
+		 * the strip owns that decision: is_in_replay non-zero is its
+		 * paused state (loc_24C74 sets it, loc_24C5A clears it), and
+		 * statecrs.c reads the same flag. */
+		if (paused || is_in_replay) accum = 0;
 		while (accum >= 50) {                 /* 20 Hz, as the original */
 			if (replay_inputs) {
 				if (state.game_frame >= replay_len) { quit = true; break; }
@@ -2685,6 +2834,44 @@ int main(int argc, char** argv)
 
 		update_frame(1, &windshield);
 		present(&pal);
+		/* The strip goes on last, over the cockpit.
+		 *
+		 * seg005 loc_21FF6 leaves the cockpit switched on while the
+		 * strip is up (byte_449E2 = 1, roofbmpheight_copy and
+		 * dashbmp_y_copy both taken) and simply draws the strip over
+		 * it afterwards - the strip is a full 320x49 band at y = 0x97
+		 * and the dash starts there, so nothing of the dash survives
+		 * while the roof does. This port composites the cockpit in
+		 * truecolour after the indexed frame has been converted, so
+		 * the strip has to be drawn the same way round or the cockpit
+		 * would cover it; rs_rgba is what selects that target, exactly
+		 * as present() does for the cockpit itself.
+		 *
+		 * Mode 3 is one pass of the interactive loop: poll, hit-test,
+		 * act, and it calls loop_game(1, ...) itself to redraw. Two
+		 * things around it are this host's and not the original's:
+		 * sprite1 is opened to the whole screen because update_frame
+		 * leaves it clipped to the windshield and the strip lives
+		 * below that (seg005 loc_21FC2 does the same before its own
+		 * calls), and the invalidate says "the strip's rows have just
+		 * been overwritten", which in the original can never happen. */
+		if (game_replay_mode == 2) {
+			sprite_set_1_size(0, VIEW_W, 0, VIEW_H);
+			replaybar_invalidate();
+			rs_rgba = frame_rgba;
+			loop_game(3, 0, 0);
+			rs_rgba = NULL;
+		}
+		/* --shots works here too, so the replay screen can be looked at
+		 * without a mouse (the headless loop below has had it since
+		 * Phase 3). */
+		if (shots_dir && state.game_frame >= shot_from
+		    && (state.game_frame - shot_from) % shot_step == 0) {
+			char sp[700];
+			snprintf(sp, sizeof(sp), "%s/f%05d.bmp", shots_dir,
+			         (int)state.game_frame);
+			write_bmp(sp, &pal);
+		}
 		SDL_UpdateTexture(tex, NULL, frame_rgba, VIEW_W * 4);
 		SDL_RenderClear(ren);
 		SDL_RenderCopy(ren, tex, NULL, NULL);
@@ -2708,6 +2895,11 @@ int main(int argc, char** argv)
 	music_native_stop();
 
 	audio_native_shutdown();
+	/* the hook points at a function that is about to lose its renderer */
+	replaybar_hook_present = NULL;
+	rb_present_ren = NULL;
+	rb_present_tex = NULL;
+	rjoy_shutdown();
 	SDL_DestroyTexture(tex);
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);

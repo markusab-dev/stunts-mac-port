@@ -1,0 +1,96 @@
+--- a/src/render_faithful/rreplaybar.c	2026-08-17 14:42:20
++++ b/src/render_faithful/rreplaybar.c	2026-08-17 14:42:20
+@@ -207,11 +207,28 @@
+  * Phase 10 in waitflag. They are the port's stand-ins, backed by SDL rather
+  * than by the DOS keyboard and mouse handlers.
+  *
+- * get_kb_or_joy_flags: the original returns a flag word whose 0x30 pair means
+- * "a key or a joystick button is down". This port reads no joystick (see
+- * docs/HANDOVER_PHASE9_11.md), so only the keyboard half can be answered, and
+- * it is answered honestly: 0x10 when any key is held, 0 otherwise.
++ * get_kb_or_joy_flags: restunts2 seg012 3761..3820 (restunts1 carries it only
++ * as an `extrn`). It folds ten scancodes out of kbscancodes into one flag word
++ * and then - only if none of them was down - falls through to get_joy_flags
++ * and returns that instead:
+  *
++ *     0x39 space -> 0x10   0x1C enter -> 0x20
++ *     0x47 kp7   -> 0x09   0x48 kp8   -> 0x01   0x49 kp9 -> 0x05
++ *     0x4B kp4   -> 0x08                        0x4D kp6 -> 0x04
++ *     0x4F kp1   -> 0x0A   0x50 kp2   -> 0x02   0x51 kp3 -> 0x06
++ *
++ * i.e. bit0 up, bit1 down, bit2 right, bit3 left, bit4/bit5 the two buttons -
++ * exactly the bitfield get_joy_flags returns and exactly the one seg005's
++ * driving loop records. BOTH halves are answered now: the joystick half comes
++ * from src/render_faithful/rjoystick.c, through the joy_flags_hook pointer
++ * below.
++ *
++ * [DEVIATION] the "any other key also sets 0x10" fallback is this port's, not
++ * the original's, and is kept on purpose: check_input above spins on
++ * `flags & 0x30` to wait a keypress out, and the original backs that up with a
++ * kbinput[] array this port does not have. Drop the fallback and holding a key
++ * that is not one of the ten stops debouncing.
++ *
+  * mouse_butstate: bits 0 and 1 are the two buttons, which is what check_input
+  * masks with 3. Refreshed on each read rather than kept by an interrupt.
+  */
+@@ -250,17 +267,58 @@
+ 		mouse_xpos = (int16_t)(mx / RFB_SCALE);
+ 		mouse_ypos = (int16_t)(my / RFB_SCALE);
+ 	}
++}
++
++/* rjoystick.c's get_joy_flags, when that file is linked in.
++ *
++ * This is a WEAK definition, and rjoystick.c carries the strong one that
++ * points at get_joy_flags. Link rjoystick.c and the strong definition wins,
++ * so the joystick half answers; leave it out - as tools/build_dumper.sh and
++ * tools/build_intro.sh do - and this NULL stands, so the call below is
++ * skipped and this file still links on its own. A weak or weak_import
++ * *declaration* was tried first and does not survive ld64: a reference to a
++ * symbol no object defines is an error either way. */
++__attribute__((weak)) int16_t (*joy_flags_hook)(void);
++
++/* One scancode's contribution, `mov bl,kbscancodes[n] ; cmp kbinput[bx],0 ;
++ * jz .. ; or al,<bits>`. SDL scancode values ARE the PC set-1 make codes for
++ * these ten, but they are spelled by name; the arrow keys are accepted
++ * alongside the keypad because a modern keyboard's keypad is often absent. */
++static int16_t kb_bit(const uint8_t* k, int n, int sc1, int sc2, int16_t bits)
++{
++	if (sc1 >= 0 && sc1 < n && k[sc1]) return bits;
++	if (sc2 >= 0 && sc2 < n && k[sc2]) return bits;
++	return 0;
+ }
+ 
+ int16_t get_kb_or_joy_flags(void)
+ {
+ 	const uint8_t* k;
+ 	int n = 0, i;
++	int16_t ax = 0;
+ 
+ 	rb_read_mouse();
+ 	k = SDL_GetKeyboardState(&n);
+-	for (i = 0; i < n; i++)
+-		if (k[i]) return 0x10;
++	/* restunts2 seg012 3762..3819, in the listing's order. */
++	ax |= kb_bit(k, n, SDL_SCANCODE_SPACE,  -1,                    0x10);
++	ax |= kb_bit(k, n, SDL_SCANCODE_RETURN, SDL_SCANCODE_KP_ENTER, 0x20);
++	ax |= kb_bit(k, n, SDL_SCANCODE_KP_7,   SDL_SCANCODE_HOME,     0x09);
++	ax |= kb_bit(k, n, SDL_SCANCODE_KP_8,   SDL_SCANCODE_UP,       0x01);
++	ax |= kb_bit(k, n, SDL_SCANCODE_KP_9,   SDL_SCANCODE_PAGEUP,   0x05);
++	ax |= kb_bit(k, n, SDL_SCANCODE_KP_6,   SDL_SCANCODE_RIGHT,    0x04);
++	ax |= kb_bit(k, n, SDL_SCANCODE_KP_3,   SDL_SCANCODE_PAGEDOWN, 0x06);
++	ax |= kb_bit(k, n, SDL_SCANCODE_KP_2,   SDL_SCANCODE_DOWN,     0x02);
++	ax |= kb_bit(k, n, SDL_SCANCODE_KP_1,   SDL_SCANCODE_END,      0x0A);
++	ax |= kb_bit(k, n, SDL_SCANCODE_KP_4,   SDL_SCANCODE_LEFT,     0x08);
++
++	/* [DEVIATION] the debounce fallback - see the note above. */
++	if ((ax & 0x30) == 0)
++		for (i = 0; i < n; i++)
++			if (k[i]) { ax |= 0x10; break; }
++
++	/* LAB_2ea2_1b9e: `or ax,ax ; jnz .. ; call get_joy_flags`. */
++	if (ax != 0) return ax;
++	if (joy_flags_hook) return joy_flags_hook();
+ 	return 0;
+ }
+ 
