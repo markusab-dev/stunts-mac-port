@@ -647,7 +647,14 @@ static void vce_read_engine(const char* data_dir)
 	int count, i, idx = -1;
 	uint32_t off;
 
-	snprintf(path, sizeof path, "%s/PCENG1.VCE", data_dir);
+	/* ADENG1, not PCENG1. This port renders through a YM3812 - the AdLib
+	 * chip - so it must use the AdLib driver's tuning, and each driver has
+	 * its own: the ENGI entry's divisor reads 6 in PCENG1, 11 in ADENG1,
+	 * 60 in MTENG1 and 5 (with a +109*16 offset) in TDENG1. Reading the PC
+	 * speaker's 6 while playing through FM made every engine tone 11/6 too
+	 * high, and because the formula is linear in rpm the error grew with
+	 * the throttle: fine at idle, shrill at the limiter. */
+	snprintf(path, sizeof path, "%s/ADENG1.VCE", data_dir);
 	f = fopen(path, "rb");
 	if (!f) return;
 	if (fread(hdr, 1, 6, f) != 6) { fclose(f); return; }
