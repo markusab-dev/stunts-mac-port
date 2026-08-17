@@ -43,6 +43,8 @@ cat > "${BUNDLE_DIR}/Contents/Info.plist" << 'EOF'
     <string>1.1.0</string>
     <key>LSMinimumSystemVersion</key>
     <string>11.0</string>
+    <key>CFBundleIconFile</key>
+    <string>Stunts</string>
     <key>NSHighResolutionCapable</key>
     <true/>
 </dict>
@@ -51,6 +53,14 @@ EOF
 
 # main_native.c falls back to Contents/Resources/data when the relative default
 # does not resolve, which is what happens when Finder launches with cwd = "/".
+# The icon is the game's own start menu, rendered by the port itself and
+# cropped square around the car - tools/make_icon.sh regenerates it.
+if [ -f build/Stunts.icns ]; then
+	cp build/Stunts.icns "${RESOURCES_DIR}/Stunts.icns"
+else
+	echo "  (ingen build/Stunts.icns - kor tools/make_icon.sh forst)"
+fi
+
 echo "  [3/3] kopierar speldata"
 cp -R extracted/stunts/stunts/* "${RESOURCES_DIR}/data/"
 

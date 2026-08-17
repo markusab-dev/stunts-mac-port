@@ -181,8 +181,20 @@ bool stunts_load_replay(const char* filepath, stunts_game_info_t* out_info, uint
      * shipped DEFAULT.RPL settles it: it is 12474 bytes, its bytes 26..1827
      * are HELL5.TRK byte for byte, and 26 + 1802 + 10646 = 12474. Reading
      * inputs at offset 26 fed 1802 bytes of track map to the car as
-     * steering. */
-    if (fseek(f, 26 + 1802, SEEK_SET) != 0) { fclose(f); return false; }
+     * steering.
+     * A replay this port wrote before that was understood has no track block
+     * and is 26 + frames, so pick the offset from the file's own length
+     * rather than assuming: both formats have to keep working, and an
+     * unconditional seek silently read the port-made ones 1802 bytes late
+     * without failing loudly. */
+    {
+        long here = ftell(f), end;
+        fseek(f, 0, SEEK_END); end = ftell(f);
+        if (end >= 26L + 1802L + (long)out_info->recorded_frames)
+            fseek(f, 26 + 1802, SEEK_SET);        /* DOS: header, track, input */
+        else
+            fseek(f, here, SEEK_SET);             /* port-made: header, input */
+    }
 
     uint16_t frame_count = out_info->recorded_frames;
     uint8_t* inputs = (uint8_t*)malloc(frame_count + 1);

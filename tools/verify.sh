@@ -137,6 +137,38 @@ for fr in 600 1200; do
 		>/dev/null 2>&1 && n=$((n+1)) || miss="$miss ruta$fr"
 done
 [ -z "$miss" ] && ok "spolning $n/2 bit-identiska" || bad "spolning -$miss"
+
+# Save/load a replay. Nothing covered this before: the physics oracle uses its
+# own .RPL path and the screen checks only prove a strip was drawn. It matters
+# because the format was wrong for a long time - a .RPL is 26 bytes of
+# GAMEINFO, then the WHOLE 1802-byte track, then one input byte per frame, and
+# this loader used to read inputs at offset 26 and feed the car 1802 bytes of
+# track map as steering.
+src=tests/replays/05_lm02_offroad_grass.rpl
+if [ -f "$src" ]; then
+	python3 - "$src" "$DATA" <<'PYEOF' && ok "inspelningsformat: huvud + bana + indata" \
+	                              || bad "inspelningsformat stammer inte"
+import sys, os
+rpl, data = sys.argv[1], sys.argv[2]
+b = open(rpl, 'rb').read()
+frames = b[24] | (b[25] << 8)
+name = b[13:22].split(b'\0')[0].decode('latin1').strip()
+trk = os.path.join(data, name + '.TRK')
+# A port-made replay is 26+frames; a DOS one is 26+1802+frames. Both must
+# parse, and a DOS one must carry its track verbatim.
+if len(b) == 26 + frames:
+    sys.exit(0)                      # port-made, no track block
+if len(b) != 26 + 1802 + frames:
+    print(f"oväntad längd {len(b)}, väntade {26+1802+frames}"); sys.exit(1)
+if not os.path.exists(trk):
+    sys.exit(0)
+if b[26:26+1802] != open(trk, 'rb').read():
+    print("banblocket matchar inte " + trk); sys.exit(1)
+sys.exit(0)
+PYEOF
+else
+	bad "inspelningsformat (saknar $src)"
+fi
 fi
 
 # ------------------------------------------------------------------ #
