@@ -1,0 +1,72 @@
+RESOLVED 2026-08-17: Nuked-OPL3 is now vendored here.
+
+  opl3.c / opl3.h   Copyright (C) 2013-2020 Nuke.YKT, LGPL-2.1, unmodified
+  LICENSE           the full LGPL-2.1 text as shipped upstream
+
+The shim is src/music_opl_nuked.c and opl_core_is_real() returns 1. The stub
+below is kept for reference and for measuring without a chip.
+
+Everything from here down is the note the previous session left.
+--------------------------------------------------------------------
+
+THIS DIRECTORY WAS EMPTY ON PURPOSE, AND THAT WAS A KNOWN GAP.
+
+Phase 8 (music) needs an OPL2 / YM3812 emulation. Writing one is a mistake -
+it is a solved problem with two good, permissively licensed implementations -
+so the plan was to vendor one. That did not happen in the session that wrote
+the sequencer: the machine had no local copy (dosbox-x and dosbox-staging are
+installed as binaries only, no sources), and fetching one from the network was
+outside what that session was allowed to do.
+
+What is compiled in instead is src/music_opl_stub.c. Read its header. It is a
+tone probe used to MEASURE pitch and timing; it is not a synthesiser and the
+output is not the game's sound.
+
+TO FIX IT
+---------
+
+Pick one:
+
+  Nuked-OPL3   https://github.com/nukeykt/Nuked-OPL3
+               files: opl3.c, opl3.h        licence: LGPL-2.1
+               cycle-exact, the reference these days.
+               API:  OPL3_Reset(&chip, rate)
+                     OPL3_WriteRegBuffered(&chip, reg, val)
+                     OPL3_GenerateStream(&chip, int16 *buf, num)   [stereo]
+               OPL2 is reached by only ever writing the low register bank
+               (0x00..0xF5) and leaving the OPL3 "new" bit (reg 0x105) clear,
+               which is exactly what our driver layer does.
+
+  ymfm         https://github.com/aaronsgiles/ymfm
+               files: src/ymfm_opl.{cpp,h} + ymfm.h + ymfm_fm.* ...
+               licence: BSD-3-Clause. C++; needs a small extern "C" shim.
+
+Then:
+
+  1. Drop the sources in here, LICENCE file included, unmodified.
+  2. Add src/music_opl_nuked.c (about 40 lines) implementing the five
+     functions in src/music_opl.h on top of the core:
+         opl_reset / opl_write / opl_render / opl_core_name / opl_core_is_real
+     opl_render() must down-mix to mono (the four drivers Stunts shipped are
+     all mono) and resample 49716 Hz -> host rate; Nuked can generate
+     directly at the host rate with OPL3_GenerateResampled, which is simpler
+     and is what you want.
+     Keep opl_write_hook working - music_native_dump_opl() depends on it.
+  3. Swap music_opl_stub.c for it in tools/build_native.sh and
+     tools/build_music_tool.sh.
+  4. Make opl_core_is_real() return 1. music_native_opl_is_real() is what
+     anything claiming "the music sounds right" is supposed to check.
+
+VERIFICATION AFTER SWAPPING
+---------------------------
+
+Nothing about the sequencer changes, so all the numbers in
+docs/FAITHFUL_RENDERER.md "Phase 8" must be reproduced exactly:
+
+    ./bin/music_tool --dump-events title      # byte-identical to before
+    ./bin/music_tool --dump-opl title 4.0     # byte-identical to before
+
+Only the .wav changes. Then re-run the pitch measurement:
+
+    ./bin/music_tool --wav title 12 /tmp/t.wav
+    python3 tools/analyse_music_wav.py /tmp/t.wav

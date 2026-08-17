@@ -50,3 +50,23 @@ test_output/
 *~
 *.idb
 *.i64
+
+# Generated test output. All of this is reproducible by running the tools -
+# state dumps, rendered frames and visual captures - and it is 110 MB.
+# tests/replays/ and tests/dos_reference/ are NOT ignored: the replays are
+# inputs verify.sh needs, and the DOS captures are ground truth that cannot
+# be regenerated without a DOSBox run.
+tests/visual_captures/
+tests/native_states/
+tests/reference_states/
+tests/opt_states/
+tests/render_native/
+tests/render_diff/
+tests/render_oracle/
+tests/render_reference/
+*.bmp
+*.jsonl
+
+# Python bytecode
+__pycache__/
+*.pyc
